@@ -2060,38 +2060,7 @@
             <li>• 控制系统稳定性显著提升</li>
         </ul>
     </div>
-</div>`
-        </div>
-        <div>
-            <h5 class="font-bold mb-2">坏动作场景 ($\hat{A}_t < 0$)</h5>
-            <ul class="text-sm space-y-1 text-themed-secondary">
-                <li>希望降低该动作的概率</li>
-                <li>允许$r_t$下降到$1-\epsilon$</li>
-                <li>低于阈值后停止更新</li>
-                <li>防止策略退化</li>
-            </ul>
-        </div>
-    </div>
-</div><div class="card p-6"><h3 class="text-xl font-bold">交互式理解：可调节的信任域裁剪</h3><p class="text-themed-secondary mb-4">令 $r_t(\theta) = \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{old}}(a_t|s_t)}$ 为新旧策略的概率比。PPO通过裁剪（Clipping）来限制这个比率在一个预设的范围 $[1-\epsilon, 1+\epsilon]$ 内。请拖动 $\epsilon$ 滑块来调整信任域大小，并切换"好动作"与"坏动作"的情景，观察目标函数如何被裁剪。</p><div class="flex justify-center items-center gap-6 mb-4"><button id="ppo-toggle-advantage" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">切换到 "坏动作"</button><div class="w-64"><label for="epsilon-slider" class="font-medium flex justify-between">裁剪范围 $\epsilon$: <span id="epsilon-value">0.2</span></label><input type="range" id="epsilon-slider" min="0.05" max="0.5" step="0.01" value="0.2" class="slider w-full h-2 bg-themed-muted rounded-lg appearance-none cursor-pointer"></div></div><canvas id="ppo-canvas" class="w-full h-64 bg-themed-muted border border-themed rounded-lg"></canvas><p id="ppo-explanation" class="text-center mt-2 font-medium"></p></div><div class="card p-6 mt-6"><h3 class="text-xl font-bold">PPO核心组件与伪代码</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="space-y-4"><div class="p-4 bg-blue-500/10 rounded-lg"><h4 class="font-bold text-blue-600 dark:text-blue-400 mt-0">裁剪代理目标</h4><p class="text-sm mt-2">这是PPO的核心创新，它通过取未裁剪和已裁剪目标的较小值，悲观地限制了策略更新的幅度，避免策略突变。</p><div class="p-2 my-2 bg-themed-secondary rounded text-center">$$L^{CLIP}(\theta) = \mathbb{E}_t \left[ \min\left(r_t(\theta)\hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t\right) \right]$$</div></div><div class="p-4 bg-green-500/10 rounded-lg"><h4 class="font-bold text-green-600 dark:text-green-400 mt-0">广义优势估计 (GAE)</h4><p class="text-sm mt-2">PPO通常采用GAE来准确估计优势函数。GAE通过加权平均多个时间步的TD误差，有效降低了优势估计的方差，提供了更稳定的优势信号。</p></div></div><div><h4 class="font-bold">PPO 伪代码</h4><pre><code>Initialize policy and value networks
-
-for iteration = 1, 2, ... do
-
-  // 1. Data Collection
-  Run old policy to collect trajectories
-
-  // 2. Advantage & Return Calculation
-  Compute advantages (GAE) and returns
-
-  // 3. Optimization
-  for K epochs do
-    for mini_batch in trajectories do
-      Update policy via clipped objective
-      Update value function via MSE
-    end for
-  end for
-  
-  Update old policy
-end for</code></pre></div></div></div>`,
+</div>`,
             'chapter6': `<h2>第6章: SAC算法详解</h2><p class="text-lg text-themed-secondary mb-6">软演员-评论家（SAC）是一种基于最大熵强化学习框架的off-policy算法。SAC的目标是最大化奖励的同时，也最大化策略的**熵**（随机性），带来了极强的鲁棒性和探索效率，在许多连续控制任务中表现优异。</p>
 
 <div class="card p-6 mb-6">
