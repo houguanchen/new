@@ -645,44 +645,315 @@
         // --- All Chapter Content and Interactive Logic ---
         const chapterContents = {
             'chapter1': `<h2>第1章: 锅炉原理与控制</h2>
-<p class="text-lg text-themed-secondary mb-6">在应用强化学习之前，我们必须首先成为半个“锅炉专家”。本章将深入探讨锅炉的物理原理、燃烧基础以及工业界广泛使用的经典控制方法，为后续的RL优化建立坚实的领域知识基础。</p>
+<p class="text-lg text-themed-secondary mb-6">在应用强化学习之前，我们必须首先成为半个"锅炉专家"。本章将深入探讨锅炉的物理原理、燃烧基础以及工业界广泛使用的经典控制方法，为后续的RL优化建立坚实的领域知识基础。</p>
+
 <div class="card p-6 mb-6">
-    <h3>1.1 燃烧、传热与热力循环</h3>
-    <p class="text-themed-secondary mb-4">锅炉的核心使命是高效、清洁地将燃料的化学能转化为蒸汽的热能。</p>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div>
-            <h4>燃烧基础：化学反应的核心</h4>
-            <p class="text-themed-secondary">燃烧需要燃料、氧化剂（空气）和点火能量。在锅炉中，我们精确控制煤粉与空气的混合比例，即<b>空燃比</b>。理想的化学计量比能完全燃烧，但实际中需要送入<b>过量空气</b>以确保燃料燃尽，但这又会增加NOx生成和排烟热损失。</p>
+    <h3>1.1 锅炉的基本工作原理与分类</h3>
+    <p class="text-themed-secondary mb-4">锅炉是工业动力系统的心脏，其核心使命是高效、清洁地将燃料的化学能转化为蒸汽的热能。根据用途和结构，锅炉可分为多种类型。</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <h4 class="font-bold text-blue-700 dark:text-blue-300 mb-2">按用途分类</h4>
+            <ul class="text-sm space-y-1">
+                <li><b>电站锅炉</b>：发电厂主力设备，容量大(300-1000MW)，参数高</li>
+                <li><b>工业锅炉</b>：为工厂提供工艺蒸汽，容量相对较小</li>
+                <li><b>船舶锅炉</b>：为船舶动力系统供汽</li>
+                <li><b>机车锅炉</b>：早期蒸汽机车动力源</li>
+            </ul>
         </div>
-        <div>
-            <h4>热量传递：从火焰到水</h4>
-            <p class="text-themed-secondary">热量通过三种方式传递给水冷壁、过热器等受热面：<b>辐射</b>（火焰的主要方式）、<b>对流</b>（高温烟气）和<b>传导</b>（通过管壁）。火焰中心的位置直接影响各受热面的吸热比例，是控制蒸汽温度的关键。</p>
+        <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+            <h4 class="font-bold text-green-700 dark:text-green-300 mb-2">按结构分类</h4>
+            <ul class="text-sm space-y-1">
+                <li><b>火管锅炉</b>：烟气在管内流动，水在管外</li>
+                <li><b>水管锅炉</b>：水在管内流动，烟气在管外，现代主流</li>
+                <li><b>直流锅炉</b>：水从给水泵直接变成过热蒸汽</li>
+                <li><b>循环流化床锅炉</b>：燃料与床料循环流化燃烧</li>
+            </ul>
         </div>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center mt-6">
-        <div id="boiler-diagram-container" class="p-2 bg-themed-secondary rounded-lg shadow-inner"></div>
-        <div id="rankine-diagram-container" class="p-2 bg-themed-secondary rounded-lg shadow-inner"></div>
+
+    <h4>现代大型电站锅炉的典型参数</h4>
+    <table class="w-full text-sm mt-4 border-collapse">
+        <thead>
+            <tr class="bg-themed-muted">
+                <th class="border border-themed p-2">参数</th>
+                <th class="border border-themed p-2">超临界机组</th>
+                <th class="border border-themed p-2">超超临界机组</th>
+                <th class="border border-themed p-2">单位</th>
+            </tr>
+        </thead>
+        <tbody class="text-themed-secondary">
+            <tr><td class="border border-themed p-2">主蒸汽压力</td><td class="border border-themed p-2">25-27</td><td class="border border-themed p-2">≥27</td><td class="border border-themed p-2">MPa</td></tr>
+            <tr><td class="border border-themed p-2">主蒸汽温度</td><td class="border border-themed p-2">540-566</td><td class="border border-themed p-2">600-630</td><td class="border border-themed p-2">℃</td></tr>
+            <tr><td class="border border-themed p-2">再热蒸汽温度</td><td class="border border-themed p-2">540-568</td><td class="border border-themed p-2">600-630</td><td class="border border-themed p-2">℃</td></tr>
+            <tr><td class="border border-themed p-2">机组效率</td><td class="border border-themed p-2">42-45</td><td class="border border-themed p-2">45-48</td><td class="border border-themed p-2">%</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="card p-6 mb-6">
+    <h3>1.2 燃烧理论与化学基础</h3>
+    <p class="text-themed-secondary mb-4">燃烧是燃料与氧化剂发生的快速化学反应，伴随大量热量释放。理解燃烧的化学机理是优化锅炉运行的基础。</p>
+    
+    <h4>1.2.1 煤的组成与特性</h4>
+    <p class="text-themed-secondary mb-4">煤是复杂的有机化合物混合体，其组成通常用工业分析和元素分析来表征：</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div>
+            <h5 class="font-bold mb-2">工业分析 (Proximate Analysis)</h5>
+            <ul class="text-sm space-y-1 text-themed-secondary">
+                <li><b>水分 (M)</b>：影响燃烧热值和燃烧稳定性</li>
+                <li><b>挥发分 (V)</b>：易燃组分，影响着火特性</li>
+                <li><b>固定碳 (FC)</b>：主要可燃成分</li>
+                <li><b>灰分 (A)</b>：不可燃矿物质，形成炉渣</li>
+            </ul>
+            <div class="mt-2 p-2 bg-themed-muted rounded text-center">
+                $$M + V + FC + A = 100\%$$
+            </div>
+        </div>
+        <div>
+            <h5 class="font-bold mb-2">元素分析 (Ultimate Analysis)</h5>
+            <ul class="text-sm space-y-1 text-themed-secondary">
+                <li><b>碳 (C)</b>：主要发热元素，占60-80%</li>
+                <li><b>氢 (H)</b>：发热量高，但含量少</li>
+                <li><b>氧 (O)</b>：已部分氧化，降低发热量</li>
+                <li><b>氮 (N)</b>：形成NOx的来源</li>
+                <li><b>硫 (S)</b>：形成SOx，腐蚀设备</li>
+            </ul>
+        </div>
+    </div>
+
+    <h4>1.2.2 燃烧化学反应方程式</h4>
+    <p class="text-themed-secondary mb-4">主要的燃烧反应包括：</p>
+    <div class="space-y-3">
+        <div class="p-4 bg-themed-muted rounded-lg">
+            <h5 class="font-bold mb-2">碳的燃烧</h5>
+            <div class="text-center space-y-1">
+                <div>完全燃烧：$$C + O_2 \rightarrow CO_2 + 394 \text{ kJ/mol}$$</div>
+                <div>不完全燃烧：$$2C + O_2 \rightarrow 2CO + 221 \text{ kJ/mol}$$</div>
+            </div>
+        </div>
+        <div class="p-4 bg-themed-muted rounded-lg">
+            <h5 class="font-bold mb-2">氢的燃烧</h5>
+            <div class="text-center">
+                $$2H_2 + O_2 \rightarrow 2H_2O + 484 \text{ kJ/mol}$$
+            </div>
+        </div>
+        <div class="p-4 bg-themed-muted rounded-lg">
+            <h5 class="font-bold mb-2">硫的燃烧</h5>
+            <div class="text-center">
+                $$S + O_2 \rightarrow SO_2 + 297 \text{ kJ/mol}$$
+            </div>
+        </div>
+    </div>
+
+    <h4>1.2.3 理论空气量与过量空气系数</h4>
+    <p class="text-themed-secondary mb-4">燃烧计算的核心是确定理论空气量和实际空气量的关系。</p>
+    
+    <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg mb-4">
+        <h5 class="font-bold text-blue-700 dark:text-blue-300 mb-2">理论空气量计算</h5>
+        <p class="text-sm mb-2">对于1kg燃料，理论空气量为：</p>
+        <div class="text-center p-2 bg-white dark:bg-gray-800 rounded">
+            $$V_0 = 0.089(C + 0.375S) + 0.265H - 0.033O \text{ m}^3/\text{kg}$$
+        </div>
+        <p class="text-xs mt-2 text-themed-secondary">其中C、H、S、O为元素分析中各元素的质量分数(%)</p>
+    </div>
+
+    <div class="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+        <h5 class="font-bold text-amber-700 dark:text-amber-300 mb-2">过量空气系数</h5>
+        <p class="text-sm mb-2">实际运行中需要过量空气确保完全燃烧：</p>
+        <div class="text-center p-2 bg-white dark:bg-gray-800 rounded mb-2">
+            $$\alpha = \frac{V_{\text{实际}}}{V_0}$$
+        </div>
+        <ul class="text-xs space-y-1">
+            <li>α = 1.0：理想状态，实际不可能</li>
+            <li>α = 1.15-1.25：煤粉炉典型值</li>
+            <li>α > 1.3：过量过多，降低效率</li>
+        </ul>
     </div>
 </div>
 
 <div class="card p-6 mb-6">
-    <h3>1.2 系统动态与建模</h3>
+    <h3>1.3 传热理论与受热面设计</h3>
+    <p class="text-themed-secondary mb-4">锅炉中的传热是一个复杂的多模式传热过程，包括辐射、对流和传导三种基本方式。</p>
+
+    <h4>1.3.1 辐射传热</h4>
+    <p class="text-themed-secondary mb-4">在炉膛内，高温火焰主要通过辐射方式向水冷壁传热，这是锅炉传热的主要形式。</p>
+    
+    <div class="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg mb-4">
+        <h5 class="font-bold text-red-700 dark:text-red-300 mb-2">Stefan-Boltzmann定律</h5>
+        <div class="text-center p-2 bg-white dark:bg-gray-800 rounded mb-2">
+            $$q = \sigma \varepsilon T^4$$
+        </div>
+        <p class="text-xs text-themed-secondary">其中：σ = 5.67×10⁻⁸ W/(m²·K⁴)，ε为发射率，T为绝对温度</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <h5 class="font-bold mb-2">炉膛辐射传热特点</h5>
+            <ul class="text-sm space-y-1 text-themed-secondary">
+                <li>传热量与温度四次方成正比</li>
+                <li>不需要传热介质，直接传递</li>
+                <li>在高温区(>800℃)占主导地位</li>
+                <li>火焰位置直接影响传热分布</li>
+            </ul>
+        </div>
+        <div>
+            <h5 class="font-bold mb-2">影响因素</h5>
+            <ul class="text-sm space-y-1 text-themed-secondary">
+                <li><b>火焰温度</b>：空燃比、过量空气</li>
+                <li><b>火焰几何</b>：燃烧器布置、摆角</li>
+                <li><b>炉膛几何</b>：高度、宽度、深度</li>
+                <li><b>受热面布置</b>：管排密度、管径</li>
+            </ul>
+        </div>
+    </div>
+
+    <h4>1.3.2 对流传热</h4>
+    <p class="text-themed-secondary mb-4">在锅炉的后部受热面(过热器、再热器、省煤器)中，主要依靠高温烟气的对流传热。</p>
+    
+    <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg mb-4">
+        <h5 class="font-bold text-green-700 dark:text-green-300 mb-2">Newton冷却定律</h5>
+        <div class="text-center p-2 bg-white dark:bg-gray-800 rounded mb-2">
+            $$q = h \cdot A \cdot \Delta T$$
+        </div>
+        <p class="text-xs text-themed-secondary">其中：h为对流传热系数，A为传热面积，ΔT为温差</p>
+    </div>
+
+    <div class="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+        <h5 class="font-bold text-purple-700 dark:text-purple-300 mb-2">对流传热系数的影响因素</h5>
+        <div class="text-center p-2 bg-white dark:bg-gray-800 rounded mb-2">
+            $$Nu = C \cdot Re^n \cdot Pr^m$$
+        </div>
+        <p class="text-xs text-themed-secondary">Nusselt数与Reynolds数、Prandtl数的关系</p>
+        <ul class="text-xs mt-2 space-y-1">
+            <li>Re ↑ → 湍流增强 → h ↑</li>
+            <li>烟气流速、密度、粘度都影响Re</li>
+            <li>管径、管排布置影响流动特性</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card p-6 mb-6">
+    <h3>1.4 锅炉热力循环与热平衡</h3>
+    
+    <h4>1.4.1 Rankine循环详解</h4>
+    <p class="text-themed-secondary mb-4">锅炉是Rankine循环的核心组件，负责将给水加热至过热蒸汽。理解热力循环对优化锅炉运行至关重要。</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center mt-6">
+        <div id="boiler-diagram-container" class="p-2 bg-themed-secondary rounded-lg shadow-inner"></div>
+        <div id="rankine-diagram-container" class="p-2 bg-themed-secondary rounded-lg shadow-inner"></div>
+    </div>
+
+    <div class="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+        <h5 class="font-bold mb-2">Rankine循环四个过程</h5>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+                <b>1→2 (给水泵加压)</b>
+                <ul class="ml-4 list-disc text-themed-secondary">
+                    <li>等熵压缩过程</li>
+                    <li>液体水被加压至锅炉压力</li>
+                    <li>功耗较小(液体不可压缩)</li>
+                </ul>
+            </div>
+            <div>
+                <b>2→3 (锅炉加热)</b>
+                <ul class="ml-4 list-disc text-themed-secondary">
+                    <li>等压加热过程</li>
+                    <li>预热→蒸发→过热三阶段</li>
+                    <li>吸收燃料燃烧产生的热量</li>
+                </ul>
+            </div>
+            <div>
+                <b>3→4 (汽轮机做功)</b>
+                <ul class="ml-4 list-disc text-themed-secondary">
+                    <li>等熵膨胀过程</li>
+                    <li>蒸汽推动叶轮做功</li>
+                    <li>温度、压力下降</li>
+                </ul>
+            </div>
+            <div>
+                <b>4→1 (冷凝器冷却)</b>
+                <ul class="ml-4 list-disc text-themed-secondary">
+                    <li>等压冷凝过程</li>
+                    <li>乏汽凝结成水</li>
+                    <li>向冷却水放热</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <h4>1.4.2 锅炉热平衡分析</h4>
+    <p class="text-themed-secondary mb-4">热平衡是评价锅炉运行经济性的重要指标，遵循能量守恒定律。</p>
+    
+    <div class="p-4 bg-themed-muted rounded-lg">
+        <div class="text-center p-2 bg-white dark:bg-gray-800 rounded mb-4">
+            $$Q_{输入} = Q_{有效利用} + \sum Q_{损失}$$
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h5 class="font-bold text-green-600 dark:text-green-400 mb-2">热量输入</h5>
+                <ul class="text-sm space-y-1">
+                    <li>燃料低位发热量：$Q_1 = Q_{net,ar} \times B$</li>
+                    <li>燃料物理显热(高温时)</li>
+                    <li>空气物理显热(预热时)</li>
+                </ul>
+            </div>
+            <div>
+                <h5 class="font-bold text-red-600 dark:text-red-400 mb-2">热量损失</h5>
+                <ul class="text-sm space-y-1">
+                    <li>$q_2$：排烟热损失(最大，35-45%)</li>
+                    <li>$q_3$：化学不完全燃烧损失</li>
+                    <li>$q_4$：机械不完全燃烧损失</li>
+                    <li>$q_5$：散热损失</li>
+                    <li>$q_6$：灰渣物理热损失</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="mt-4 p-3 bg-blue-100 dark:bg-blue-900/30 rounded">
+            <h5 class="font-bold text-blue-700 dark:text-blue-300 mb-1">锅炉效率计算</h5>
+            <div class="text-center">
+                $$\eta = \frac{Q_{有效利用}}{Q_{输入}} \times 100\% = (100 - \sum q_i)\%$$
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card p-6 mb-6">
+    <h3>1.5 系统动态与建模</h3>
     <p class="text-themed-secondary mb-4">工业过程不是瞬时响应的。理解其动态特性是有效控制的前提。锅炉这类复杂系统的动态行为，通常可以被简化的一阶加纯迟滞(FOPDT)模型来近似描述。</p>
     <div class="p-4 my-2 bg-themed-muted rounded text-center text-md">
         $$G(s) = \frac{K_p e^{-\theta_p s}}{\tau_p s + 1}$$
     </div>
+    
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
         <div>
+            <h4>FOPDT模型参数物理意义</h4>
             <ul class="list-disc list-inside space-y-2 mt-2 text-themed-secondary">
-                <li><b>$K_p$ (Process Gain) 过程增益:</b> 稳态下，输出变化量与输入变化量的比率。它表示系统的“敏感度”。</li>
-                <li><b>$\tau_p$ (Time Constant) 时间常数:</b> 系统达到新稳态63.2%所需的时间。它代表系统的“惯性”。</li>
-                <li><b>$\theta_p$ (Dead Time) 纯迟滞:</b> 从输入变化到输出开始响应的时间差。它代表系统的“延迟”。</li>
+                <li><b>$K_p$ (Process Gain) 过程增益:</b> 稳态下，输出变化量与输入变化量的比率。它表示系统的"敏感度"。例如：给煤量增加1%，主蒸汽温度最终升高多少℃。</li>
+                <li><b>$\tau_p$ (Time Constant) 时间常数:</b> 系统达到新稳态63.2%所需的时间。它代表系统的"惯性"。大型锅炉的时间常数通常为15-60分钟。</li>
+                <li><b>$\theta_p$ (Dead Time) 纯迟滞:</b> 从输入变化到输出开始响应的时间差。它代表系统的"延迟"。包括测量延迟、传输延迟、物理过程延迟等。</li>
             </ul>
             <p class="text-themed-secondary mt-4">例如，增大给煤量后，主蒸汽温度不会立刻上升，而是会延迟($\theta_p$)一会才开始缓慢爬升($\tau_p$)，最终达到一个新的、更高的稳定温度($K_p$)。</p>
+            
+            <div class="mt-4 p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded">
+                <h5 class="font-bold text-yellow-700 dark:text-yellow-300 mb-1">典型锅炉过程参数</h5>
+                <table class="w-full text-xs">
+                    <thead><tr><th>控制回路</th><th>$K_p$</th><th>$\tau_p$(min)</th><th>$\theta_p$(min)</th></tr></thead>
+                    <tbody>
+                        <tr><td>主蒸汽压力</td><td>0.8</td><td>15-25</td><td>2-5</td></tr>
+                        <tr><td>主蒸汽温度</td><td>1.2</td><td>30-60</td><td>5-15</td></tr>
+                        <tr><td>炉膛负压</td><td>-0.5</td><td>8-15</td><td>1-3</td></tr>
+                        <tr><td>排烟温度</td><td>2.5</td><td>20-40</td><td>3-8</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
         <div class="bg-themed-muted p-4 rounded-lg">
             <h4>FOPDT 模型浏览器</h4>
-            <p class="text-sm text-themed-secondary mb-4">拖动滑块，观察不同动态参数如何影响系统的阶跃响应。</p>
+            <p class="text-sm text-themed-secondary mb-4">拖动滑块，观察不同动态参数如何影响系统的阶跃响应。理解这些参数对控制系统设计的影响。</p>
             <div>
                 <label class="font-medium flex justify-between">增益 $K_p$: <span id="kp-value">1.0</span></label>
                 <input type="range" id="kp-slider" min="0.2" max="2" step="0.1" value="1.0" class="slider w-full">
@@ -695,6 +966,14 @@
                 <label class="font-medium flex justify-between">纯迟滞 $\theta_p$: <span id="theta-value">10</span>s</label>
                 <input type="range" id="theta-slider" min="0" max="30" step="1" value="10" class="slider w-full">
             </div>
+            <div class="mt-3 text-xs text-themed-secondary">
+                <p><b>观察要点：</b></p>
+                <ul class="list-disc list-inside space-y-1">
+                    <li>增益$K_p$影响最终稳态值</li>
+                    <li>时间常数$\tau_p$影响响应快慢</li>
+                    <li>纯迟滞$\theta_p$影响开始响应时间</li>
+                </ul>
+            </div>
         </div>
     </div>
     <div class="p-4 mt-4 bg-themed-muted rounded-lg">
@@ -703,22 +982,52 @@
 </div>
 
 <div class="card p-6 mb-6">
-    <h3>1.3 工业基石：PID控制回路</h3>
+    <h3>1.6 工业基石：PID控制回路</h3>
     <p class="text-themed-secondary mb-4">在90%的工业场景中，PID（比例-积分-微分）控制器是维持系统稳定的中流砥柱。理解PID的原理和局限性，是理解为什么需要RL的关键。</p>
+    
+    <h4>1.6.1 PID控制原理深入解析</h4>
+    <div class="p-4 bg-themed-muted rounded-lg mb-4">
+        <div class="text-center p-2 bg-white dark:bg-gray-800 rounded mb-4">
+            $$u(t) = K_p e(t) + K_i \int_0^t e(\tau) d\tau + K_d \frac{de(t)}{dt}$$
+        </div>
+        <p class="text-center text-sm text-themed-secondary">其中：$e(t) = r(t) - y(t)$ 为控制误差</p>
+    </div>
+    
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
-            <p class="text-themed-secondary">PID通过三个部分来计算控制输出：</p>
-            <ul class="list-disc list-inside space-y-2 mt-2 text-themed-secondary">
-                <li><b>P (Proportional) 比例:</b> 响应当前误差。误差越大，输出越大。但仅有P会有静差。</li>
-                <li><b>I (Integral) 积分:</b> 消除静差。累积历史误差，只要误差存在，积分项就持续增长。</li>
-                <li><b>D (Derivative) 微分:</b> 预测未来。根据误差变化率进行响应，抑制超调和振荡。</li>
-            </ul>
-            <div class="p-4 mt-4 bg-themed-muted rounded-lg">
-                <canvas id="pid-chart"></canvas>
+            <h5 class="font-bold mb-3">PID三项作用详解</h5>
+            <div class="space-y-4">
+                <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
+                    <h6 class="font-bold text-blue-700 dark:text-blue-300">比例项 (P)</h6>
+                    <ul class="text-sm mt-1 space-y-1">
+                        <li>与当前误差成正比：$u_p = K_p \cdot e(t)$</li>
+                        <li>响应速度快，但存在稳态误差</li>
+                        <li>$K_p$过大会引起振荡</li>
+                        <li>$K_p$过小响应缓慢</li>
+                    </ul>
+                </div>
+                <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                    <h6 class="font-bold text-green-700 dark:text-green-300">积分项 (I)</h6>
+                    <ul class="text-sm mt-1 space-y-1">
+                        <li>累积历史误差：$u_i = K_i \int e(t)dt$</li>
+                        <li>消除稳态误差</li>
+                        <li>$K_i$过大会导致积分饱和</li>
+                        <li>积分时间$T_i = K_p/K_i$</li>
+                    </ul>
+                </div>
+                <div class="p-3 bg-purple-50 dark:bg-purple-900/20 rounded">
+                    <h6 class="font-bold text-purple-700 dark:text-purple-300">微分项 (D)</h6>
+                    <ul class="text-sm mt-1 space-y-1">
+                        <li>预测误差变化：$u_d = K_d \frac{de}{dt}$</li>
+                        <li>抑制超调，改善动态性能</li>
+                        <li>对噪声敏感</li>
+                        <li>微分时间$T_d = K_d/K_p$</li>
+                    </ul>
+                </div>
             </div>
         </div>
         <div class="bg-themed-muted p-4 rounded-lg">
-            <h4>PID调谐器</h4>
+            <h4>PID参数调谐器</h4>
             <p class="text-sm text-themed-secondary mb-4">尝试调节P, I, D三个参数，观察系统对阶跃信号（如负荷突变）的响应曲线变化。</p>
             <div>
                 <label for="p-gain" class="font-medium flex justify-between">比例 (P): <span id="p-gain-value">0.5</span></label>
@@ -732,10 +1041,184 @@
                 <label for="d-gain" class="font-medium flex justify-between">微分 (D): <span id="d-gain-value">0.1</span></label>
                 <input type="range" id="d-gain" min="0" max="1" step="0.05" value="0.1" class="slider w-full">
             </div>
-            <p class="mt-4 text-sm text-themed-secondary"><b>挑战:</b> PID参数在特定工况下调优后表现良好，但当工况（负荷、煤质）变化时，固定的PID参数难以始终保持最优。这正是RL的用武之地。</p>
+            <div class="p-4 mt-4 bg-themed-muted rounded-lg">
+                <canvas id="pid-chart"></canvas>
+            </div>
+            <div class="mt-4 p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded">
+                <h6 class="font-bold text-yellow-700 dark:text-yellow-300 mb-1">调谐经验法则</h6>
+                <ul class="text-xs space-y-1">
+                    <li><b>Ziegler-Nichols法</b>：先调P至临界振荡，再设置I、D</li>
+                    <li><b>Cohen-Coon法</b>：适用于有纯迟滞的过程</li>
+                    <li><b>ITAE最优法</b>：最小化时间乘误差积分</li>
+                </ul>
+            </div>
+            <p class="mt-4 text-sm text-themed-secondary"><b>工程挑战:</b> PID参数在特定工况下调优后表现良好，但当工况（负荷、煤质、环境温度）变化时，固定的PID参数难以始终保持最优。这正是自适应控制和强化学习的用武之地。</p>
         </div>
     </div>
-</div>`,
+</div>
+
+<div class="card p-6 mb-6">
+    <h3>1.7 现代锅炉控制系统架构</h3>
+    <p class="text-themed-secondary mb-4">现代大型锅炉采用分层递阶控制结构，从底层的基础自动化到上层的优化控制，形成了完整的控制体系。</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg text-center">
+            <h5 class="font-bold text-green-700 dark:text-green-300 mb-2">L0层 - 过程层</h5>
+            <ul class="text-sm space-y-1">
+                <li>传感器、执行器</li>
+                <li>现场仪表</li>
+                <li>安全联锁</li>
+            </ul>
+        </div>
+        <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center">
+            <h5 class="font-bold text-blue-700 dark:text-blue-300 mb-2">L1层 - 控制层</h5>
+            <ul class="text-sm space-y-1">
+                <li>DCS控制站</li>
+                <li>PID控制回路</li>
+                <li>逻辑控制</li>
+            </ul>
+        </div>
+        <div class="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-center">
+            <h5 class="font-bold text-purple-700 dark:text-purple-300 mb-2">L2层 - 监控层</h5>
+            <ul class="text-sm space-y-1">
+                <li>操作员站</li>
+                <li>工程师站</li>
+                <li>历史数据库</li>
+            </ul>
+        </div>
+    </div>
+
+    <h4>1.7.1 主要控制回路</h4>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <h5 class="font-bold mb-2">燃烧控制系统</h5>
+            <ul class="text-sm space-y-1 text-themed-secondary">
+                <li><b>主汽压力控制</b>：调节给煤量</li>
+                <li><b>汽温控制</b>：调节减温水量、燃烧器摆角</li>
+                <li><b>氧量控制</b>：调节总风量</li>
+                <li><b>炉膛负压控制</b>：调节引风机</li>
+            </ul>
+        </div>
+        <div>
+            <h5 class="font-bold mb-2">给水控制系统</h5>
+            <ul class="text-sm space-y-1 text-themed-secondary">
+                <li><b>汽包水位控制</b>：三冲量控制</li>
+                <li><b>给水温度控制</b>：调节抽汽量</li>
+                <li><b>给水压力控制</b>：调节给水泵</li>
+                <li><b>除氧器水位</b>：调节补水量</li>
+            </ul>
+        </div>
+    </div>
+
+    <h4>1.7.2 控制系统性能指标</h4>
+    <div class="p-4 bg-themed-muted rounded-lg">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+                <b>稳态精度</b>
+                <ul class="mt-1 space-y-1 text-themed-secondary">
+                    <li>主汽压力: ±0.5%</li>
+                    <li>主汽温度: ±3℃</li>
+                    <li>氧量: ±0.2%</li>
+                </ul>
+            </div>
+            <div>
+                <b>动态性能</b>
+                <ul class="mt-1 space-y-1 text-themed-secondary">
+                    <li>超调量: <5%</li>
+                    <li>调节时间: <300s</li>
+                    <li>无振荡</li>
+                </ul>
+            </div>
+            <div>
+                <b>抗干扰能力</b>
+                <ul class="mt-1 space-y-1 text-themed-secondary">
+                    <li>负荷变化</li>
+                    <li>煤质波动</li>
+                    <li>环境条件</li>
+                </ul>
+            </div>
+            <div>
+                <b>安全可靠性</b>
+                <ul class="mt-1 space-y-1 text-themed-secondary">
+                    <li>故障检测</li>
+                    <li>安全联锁</li>
+                    <li>冗余备份</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card p-6">
+    <h3>1.8 锅炉控制的挑战与机遇</h3>
+    <p class="text-themed-secondary mb-4">传统控制方法在面对现代电力系统的新要求时遇到了挑战，这为人工智能技术的应用提供了机遇。</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <h5 class="font-bold text-red-600 dark:text-red-400 mb-3">传统控制的局限性</h5>
+            <div class="space-y-3">
+                <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded">
+                    <h6 class="font-bold mb-1">参数固化问题</h6>
+                    <p class="text-sm">PID参数针对特定工况调优，难以适应煤质变化、负荷波动、设备老化等</p>
+                </div>
+                <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded">
+                    <h6 class="font-bold mb-1">多目标冲突</h6>
+                    <p class="text-sm">效率、排放、安全等多目标往往冲突，传统控制难以动态平衡</p>
+                </div>
+                <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded">
+                    <h6 class="font-bold mb-1">响应滞后</h6>
+                    <p class="text-sm">基于反馈的控制存在滞后，难以预测性调节</p>
+                </div>
+            </div>
+        </div>
+        <div>
+            <h5 class="font-bold text-green-600 dark:text-green-400 mb-3">人工智能的优势</h5>
+            <div class="space-y-3">
+                <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                    <h6 class="font-bold mb-1">自适应学习</h6>
+                    <p class="text-sm">通过强化学习动态调整策略，适应工况变化</p>
+                </div>
+                <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                    <h6 class="font-bold mb-1">多目标优化</h6>
+                    <p class="text-sm">通过约束优化框架同时考虑效率、环保、安全</p>
+                </div>
+                <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                    <h6 class="font-bold mb-1">预测控制</h6>
+                    <p class="text-sm">基于历史数据和模型预测未来趋势，提前调节</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+        <h5 class="font-bold text-blue-700 dark:text-blue-300 mb-2">AI在锅炉控制中的应用前景</h5>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div>
+                <b>智能燃烧优化</b>
+                <ul class="mt-1 space-y-1 text-themed-secondary">
+                    <li>动态调节空燃比</li>
+                    <li>优化燃烧器摆角</li>
+                    <li>减少NOx排放</li>
+                </ul>
+            </div>
+            <div>
+                <b>预测性维护</b>
+                <ul class="mt-1 space-y-1 text-themed-secondary">
+                    <li>设备状态监测</li>
+                    <li>故障早期预警</li>
+                    <li>优化检修计划</li>
+                </ul>
+            </div>
+            <div>
+                <b>能效优化</b>
+                <ul class="mt-1 space-y-1 text-themed-secondary">
+                    <li>最优负荷分配</li>
+                    <li>热经济性分析</li>
+                    <li>碳排放控制</li>
+                </ul>
+            </div>
+        </div>
+    </div>`,
             'chapter2': `<h2>第2章: 强化学习世界观</h2>
 <p class="text-lg text-themed-secondary mb-6">本章将为您构建一个完整的强化学习(RL)知识框架。我们将从其核心数学描述——马尔可夫决策过程(MDP)出发，深入探讨价值与策略的核心概念，并引出如何用更强大的序列模型来理解复杂的工业过程状态。</p>
 <div class="card p-6 mb-6">
@@ -758,7 +1241,7 @@
         </div>
         <div>
             <h4>价值函数 (Value Function)</h4>
-            <p class="text-themed-secondary">价值函数用于评估一个策略有多好，它衡量了“身处某个状态”或“在某个状态下执行某个动作”的长期价值。
+            <p class="text-themed-secondary">价值函数用于评估一个策略有多好，它衡量了"身处某个状态"或"在某个状态下执行某个动作"的长期价值。
             <ul class="list-disc list-inside mt-2 text-sm">
                 <li>状态价值 $V^\pi(s) = \mathbb{E}_\pi[G_t | s_t=s]$</li>
                 <li>动作价值 $Q^\pi(s, a) = \mathbb{E}_\pi[G_t | s_t=s, a_t=a]$</li>
@@ -794,16 +1277,16 @@
     <h3>2.4 现代方法：用序列模型理解工业过程</h3>
     <p class="text-themed-secondary mb-4">锅炉等工业过程具有强烈的<b>时序依赖性</b>和<b>惯性</b>。当前的状态不仅与上一秒的动作有关，还可能与几十分钟前的燃料变化有关。将状态简单地看作一个孤立的时间点快照($s_t$)会丢失大量信息。</p>
     <h4>从快照到历史：RNN 与 Transformer</h4>
-    <p class="text-themed-secondary mb-4">为了让智能体拥有“记忆”，研究人员引入了序列模型来处理历史数据。传统上使用<b>循环神经网络 (RNN/LSTM)</b>，它们通过内部的循环结构逐步传递信息。然而，近年来功能更强大的<b>Transformer</b>模型已成为主流，其核心是<b>自注意力机制 (Self-Attention)</b>，能让模型在处理当前时刻数据时，“回顾”整个历史序列，并为所有过去的时间点动态地分配注意力权重，从而捕捉到对当前决策最关键的历史信息。</p>
+    <p class="text-themed-secondary mb-4">为了让智能体拥有"记忆"，研究人员引入了序列模型来处理历史数据。传统上使用<b>循环神经网络 (RNN/LSTM)</b>，它们通过内部的循环结构逐步传递信息。然而，近年来功能更强大的<b>Transformer</b>模型已成为主流，其核心是<b>自注意力机制 (Self-Attention)</b>，能让模型在处理当前时刻数据时，"回顾"整个历史序列，并为所有过去的时间点动态地分配注意力权重，从而捕捉到对当前决策最关键的历史信息。</p>
     <h4>应用：基于Transformer的锅炉状态表征</h4>
     <p class="text-themed-secondary mb-4">我们可以构建一个更强大的、能理解过程历史的RL智能体，其工作流程如下：</p>
     <div id="transformer-boiler-diagram" class="p-4 bg-themed-muted rounded-lg flex justify-center"></div>
     <ol class="list-decimal list-inside space-y-2 text-themed-secondary mt-4">
         <li><b>数据准备：</b>从DCS中提取过去一段时间（如30分钟）的多变量时间序列数据，包括所有状态和动作。</li>
-        <li><b>定义序列状态：</b>智能体观察到的“状态”不再是 $s_t$，而是历史序列 $(s_{t-k}, a_{t-k}, ..., s_{t-1}, a_{t-1}, s_t)$。</li>
+        <li><b>定义序列状态：</b>智能体观察到的"状态"不再是 $s_t$，而是历史序列 $(s_{t-k}, a_{t-k}, ..., s_{t-1}, a_{t-1}, s_t)$。</li>
         <li><b>编码与嵌入：</b>将序列中的每个元素（状态向量和动作向量）通过一个线性层映射为高维嵌入，并为其添加位置编码，以保留时序信息。</li>
         <li><b>Transformer编码器：</b>将嵌入序列送入Transformer编码器。其内部的自注意力层会计算序列中任意两个时间点之间的关联强度，生成一个对整个过程历史有深刻理解的上下文表示。</li>
-        <li><b>决策输出：</b>将Transformer编码器的输出（代表了对当前状态的深度理解）送入两个小型的“决策头”网络，分别输出策略（下一个最优动作）和价值（当前状态的评分）。</li>
+        <li><b>决策输出：</b>将Transformer编码器的输出（代表了对当前状态的深度理解）送入两个小型的"决策头"网络，分别输出策略（下一个最优动作）和价值（当前状态的评分）。</li>
     </ol>
 </div>
 <div class="card p-6 mb-6">
@@ -837,27 +1320,70 @@
 </div>`,
             'chapter3': `<h2>第3章: 深度学习与RL结合</h2>
 <p class="text-lg text-themed-secondary mb-6">经典RL方法使用表格存储价值，但这在状态空间巨大时会面临"维度灾难"。深度学习通过使用神经网络(NN)作为强大的函数逼近器，催生了深度强化学习(DRL)，使其能应对拥有高维、连续状态空间的复杂问题，比如锅炉控制。</p>
+
 <div class="card p-6 mb-6">
     <h3>3.1 神经网络：万能函数逼近器</h3>
     <p class="text-themed-secondary mb-4">神经网络是DRL的核心引擎。一个基本的前馈神经网络(Feed-Forward Neural Network)，或称多层感知机(MLP)，由输入层、若干隐藏层和输出层构成。</p>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+    
+    <h4>3.1.1 基础架构与数学原理</h4>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center mb-6">
         <div class="p-4 bg-themed-muted rounded-lg" id="nn-diagram-container"></div>
         <div>
-            <ul class="list-disc list-inside space-y-2 text-themed-secondary">
-                <li><b>神经元:</b> 网络的基本计算单元，接收来自上一层的输入，进行加权求和，然后通过一个非线性的<b>激活函数</b>（如ReLU, Sigmoid）得到输出。</li>
-                <li><b>激活函数:</b> 它的作用是为网络引入非线性，使其能够学习和模拟复杂的关系。没有激活函数，多层网络也只相当于一个单层线性模型。</li>
-                <li><b>学习过程:</b> 网络通过<b>反向传播</b>和<b>梯度下降</b>进行学习。即计算预测与真实值之间的差距（损失），然后沿着能使损失减小的方向微调网络中的所有权重。</li>
+            <h5 class="font-bold mb-2">前向传播过程</h5>
+            <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded mb-3">
+                <div class="text-center text-sm">
+                    $$z^{(l)} = W^{(l)} a^{(l-1)} + b^{(l)}$$
+                    $$a^{(l)} = f(z^{(l)})$$
+                </div>
+                <p class="text-xs mt-2">其中$W^{(l)}$为第$l$层权重矩阵，$b^{(l)}$为偏置向量，$f(\cdot)$为激活函数</p>
+            </div>
+            <ul class="list-disc list-inside space-y-2 text-themed-secondary text-sm">
+                <li><b>神经元:</b> 网络的基本计算单元，接收来自上一层的输入，进行加权求和，然后通过一个非线性的<b>激活函数</b>得到输出</li>
+                <li><b>权重与偏置:</b> 可学习参数，通过训练不断调整以拟合目标函数</li>
+                <li><b>激活函数:</b> 引入非线性，使网络能够学习复杂的非线性映射关系</li>
+                <li><b>通用逼近定理:</b> 理论上证明了具有足够宽度的单隐层网络可以逼近任意连续函数</li>
             </ul>
+        </div>
+    </div>
+
+    <h4>3.1.2 反向传播算法详解</h4>
+    <p class="text-themed-secondary mb-4">反向传播是训练神经网络的核心算法，它通过链式法则计算损失函数对每个参数的梯度。</p>
+    
+    <div class="p-4 bg-themed-muted rounded-lg">
+        <h5 class="font-bold mb-2">反向传播步骤</h5>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <b>1. 前向传播计算输出</b>
+                <div class="text-sm mt-1 p-2 bg-white dark:bg-gray-800 rounded">
+                    $$\hat{y} = f(x; \theta)$$
+                </div>
+                <b>2. 计算损失函数</b>
+                <div class="text-sm mt-1 p-2 bg-white dark:bg-gray-800 rounded">
+                    $$L = \frac{1}{n}\sum_{i=1}^n \ell(\hat{y}_i, y_i)$$
+                </div>
+            </div>
+            <div>
+                <b>3. 反向传播计算梯度</b>
+                <div class="text-sm mt-1 p-2 bg-white dark:bg-gray-800 rounded">
+                    $$\frac{\partial L}{\partial W^{(l)}} = \frac{\partial L}{\partial z^{(l)}} \cdot (a^{(l-1)})^T$$
+                </div>
+                <b>4. 更新参数</b>
+                <div class="text-sm mt-1 p-2 bg-white dark:bg-gray-800 rounded">
+                    $$\theta \leftarrow \theta - \eta \nabla_\theta L$$
+                </div>
+            </div>
         </div>
     </div>
 </div>
 <div class="card p-6 mb-6">
     <h3>3.2 激活函数动物园</h3>
-    <p class="text-themed-secondary mb-4">选择合适的激活函数对神经网络的性能至关重要。下面是几种常见的激活函数：</p>
+    <p class="text-themed-secondary mb-4">选择合适的激活函数对神经网络的性能至关重要。不同的激活函数具有不同的特性和适用场景。</p>
     <div class="flex space-x-2 border-b border-themed mb-4">
         <button class="tab-btn px-4 py-2 rounded-t-lg" data-tab="relu">ReLU</button>
         <button class="tab-btn px-4 py-2 rounded-t-lg" data-tab="sigmoid">Sigmoid</button>
         <button class="tab-btn px-4 py-2 rounded-t-lg" data-tab="tanh">Tanh</button>
+        <button class="tab-btn px-4 py-2 rounded-t-lg" data-tab="leaky">Leaky ReLU</button>
+        <button class="tab-btn px-4 py-2 rounded-t-lg" data-tab="gelu">GELU</button>
     </div>
     <div id="activation-content" class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
         <div class="p-4 bg-themed-muted rounded-lg">
@@ -865,37 +1391,424 @@
         </div>
         <div id="activation-desc" class="text-themed-secondary"></div>
     </div>
+    
+    <div class="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+        <h5 class="font-bold mb-2">激活函数选择指南</h5>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div>
+                <b>隐藏层推荐</b>
+                <ul class="mt-1 space-y-1 text-themed-secondary">
+                    <li>ReLU: 通用首选</li>
+                    <li>Leaky ReLU: 避免死神经元</li>
+                    <li>GELU: Transformer中常用</li>
+                </ul>
+            </div>
+            <div>
+                <b>输出层选择</b>
+                <ul class="mt-1 space-y-1 text-themed-secondary">
+                    <li>线性: 回归问题</li>
+                    <li>Sigmoid: 二分类</li>
+                    <li>Softmax: 多分类</li>
+                </ul>
+            </div>
+            <div>
+                <b>特殊场景</b>
+                <ul class="mt-1 space-y-1 text-themed-secondary">
+                    <li>Tanh: 数据均值为0</li>
+                    <li>Swish: 移动端优化</li>
+                    <li>Mish: 精度要求高</li>
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>
+
 <div class="card p-6 mb-6">
-    <h3>3.3 交互式理解：梯度下降与优化器</h3>
-    <p class="text-themed-secondary mb-4">梯度下降是优化神经网络的核心算法。想象一下，我们想找到下图抛物线的最低点（最小损失）。我们从一个随机点开始，计算该点的“坡度”（梯度），然后沿着坡度最陡峭的反方向迈出一步。<b>学习率</b>决定了我们每一步迈多大。</p>
+    <h3>3.3 现代神经网络架构</h3>
+    <p class="text-themed-secondary mb-4">除了基础的全连接网络，现代深度学习发展出了多种专门化的网络架构，用于处理不同类型的数据和任务。</p>
+    
+    <h4>3.3.1 卷积神经网络 (CNN)</h4>
+    <p class="text-themed-secondary mb-4">CNN专门用于处理具有网格结构的数据，如图像。在强化学习中，常用于处理像素状态输入。</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div>
+            <h5 class="font-bold mb-2">核心组件</h5>
+            <div class="space-y-3">
+                <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
+                    <h6 class="font-bold text-blue-700 dark:text-blue-300">卷积层</h6>
+                    <p class="text-sm mt-1">通过可学习的滤波器(kernel)检测局部特征</p>
+                    <div class="text-xs mt-1 p-1 bg-white dark:bg-gray-800 rounded">
+                        $$(f * g)(m,n) = \sum_i \sum_j f(i,j)g(m-i,n-j)$$
+                    </div>
+                </div>
+                <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                    <h6 class="font-bold text-green-700 dark:text-green-300">池化层</h6>
+                    <p class="text-sm mt-1">降采样，减少参数量，增加平移不变性</p>
+                </div>
+                <div class="p-3 bg-purple-50 dark:bg-purple-900/20 rounded">
+                    <h6 class="font-bold text-purple-700 dark:text-purple-300">全连接层</h6>
+                    <p class="text-sm mt-1">最终的分类或回归层</p>
+                </div>
+            </div>
+        </div>
+        <div>
+            <h5 class="font-bold mb-2">在RL中的应用</h5>
+            <ul class="text-sm space-y-2 text-themed-secondary">
+                <li><b>视觉RL:</b> 直接从像素学习策略，如Atari游戏</li>
+                <li><b>工业图像:</b> 分析锅炉火焰图像判断燃烧状态</li>
+                <li><b>特征提取:</b> 将高维视觉输入压缩为低维特征</li>
+                <li><b>空间理解:</b> 理解环境的空间结构和关系</li>
+            </ul>
+            
+            <div class="mt-4 p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded">
+                <h6 class="font-bold text-yellow-700 dark:text-yellow-300">典型CNN架构</h6>
+                <p class="text-xs">Conv2D(32,3×3) → ReLU → MaxPool → Conv2D(64,3×3) → ReLU → MaxPool → FC(128) → FC(actions)</p>
+            </div>
+        </div>
+    </div>
+
+    <h4>3.3.2 循环神经网络 (RNN) 与LSTM</h4>
+    <p class="text-themed-secondary mb-4">RNN系列网络专门处理序列数据，能够建模时间依赖关系，在处理具有记忆需求的RL任务中很有用。</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <h5 class="font-bold mb-2">LSTM单元结构</h5>
+            <div class="p-3 bg-themed-muted rounded">
+                <p class="text-sm mb-2">LSTM通过门控机制解决了传统RNN的梯度消失问题：</p>
+                <ul class="text-xs space-y-1">
+                    <li><b>遗忘门:</b> $f_t = \sigma(W_f \cdot [h_{t-1}, x_t] + b_f)$</li>
+                    <li><b>输入门:</b> $i_t = \sigma(W_i \cdot [h_{t-1}, x_t] + b_i)$</li>
+                    <li><b>输出门:</b> $o_t = \sigma(W_o \cdot [h_{t-1}, x_t] + b_o)$</li>
+                    <li><b>细胞状态:</b> $C_t = f_t * C_{t-1} + i_t * \tilde{C}_t$</li>
+                </ul>
+            </div>
+        </div>
+        <div>
+            <h5 class="font-bold mb-2">在RL中的应用</h5>
+            <ul class="text-sm space-y-2 text-themed-secondary">
+                <li><b>部分观测环境:</b> 维护对隐藏状态的信念</li>
+                <li><b>策略记忆:</b> 记住过去的动作和观测</li>
+                <li><b>时序决策:</b> 考虑动作的时间序列效应</li>
+                <li><b>非马尔可夫过程:</b> 处理违反马尔可夫假设的环境</li>
+            </ul>
+            
+            <div class="mt-4 p-3 bg-blue-100 dark:bg-blue-900/30 rounded">
+                <h6 class="font-bold text-blue-700 dark:text-blue-300">改进变种</h6>
+                <ul class="text-xs space-y-1">
+                    <li><b>GRU:</b> 简化版LSTM，参数更少</li>
+                    <li><b>Bi-LSTM:</b> 双向处理，适合序列分析</li>
+                    <li><b>Attention-LSTM:</b> 结合注意力机制</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card p-6 mb-6">
+    <h3>3.4 注意力机制与Transformer</h3>
+    <p class="text-themed-secondary mb-4">注意力机制是现代深度学习的重要突破，它允许模型动态地关注输入的不同部分，极大地提升了模型的表达能力。</p>
+    
+    <h4>3.4.1 自注意力机制原理</h4>
+    <div class="p-4 bg-themed-muted rounded-lg mb-4">
+        <h5 class="font-bold mb-2">数学原理</h5>
+        <div class="text-center text-sm space-y-2">
+            <div>$$\text{Attention}(Q,K,V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$</div>
+            <div>$$\text{MultiHead}(Q,K,V) = \text{Concat}(\text{head}_1, ..., \text{head}_h)W^O$$</div>
+        </div>
+        <p class="text-xs mt-2 text-center text-themed-secondary">其中Q(查询)、K(键)、V(值)是通过线性变换得到的矩阵</p>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <h5 class="font-bold mb-2">核心优势</h5>
+            <ul class="text-sm space-y-2 text-themed-secondary">
+                <li><b>并行计算:</b> 不像RNN需要顺序处理</li>
+                <li><b>长距离依赖:</b> 直接建模任意位置间的关系</li>
+                <li><b>可解释性:</b> 注意力权重可以可视化</li>
+                <li><b>灵活性:</b> 可以处理变长序列</li>
+            </ul>
+        </div>
+        <div>
+            <h5 class="font-bold mb-2">Transformer架构</h5>
+            <ul class="text-sm space-y-2 text-themed-secondary">
+                <li><b>编码器:</b> Self-Attention + FFN</li>
+                <li><b>解码器:</b> Masked Self-Attention + Cross-Attention + FFN</li>
+                <li><b>位置编码:</b> 提供序列位置信息</li>
+                <li><b>残差连接:</b> 缓解梯度消失问题</li>
+            </ul>
+        </div>
+    </div>
+
+    <h4>3.4.2 在强化学习中的应用</h4>
+    <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+        <h5 class="font-bold text-green-700 dark:text-green-300 mb-2">Decision Transformer</h5>
+        <p class="text-sm mb-2">将RL问题重新定义为序列建模问题：</p>
+        <ul class="text-xs space-y-1">
+            <li>输入序列: (R₁, s₁, a₁, R₂, s₂, a₂, ...)</li>
+            <li>目标: 预测下一个动作 aₜ</li>
+            <li>优势: 可以直接利用离线数据，无需价值函数</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card p-6 mb-6">
+    <h3>3.5 正则化技术与优化策略</h3>
+    <p class="text-themed-secondary mb-4">深度神经网络容易过拟合，需要各种正则化技术来提高泛化能力。同时，优化算法的选择也至关重要。</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <h5 class="font-bold mb-3">正则化技术</h5>
+            <div class="space-y-3">
+                <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
+                    <h6 class="font-bold text-blue-700 dark:text-blue-300">Dropout</h6>
+                    <p class="text-sm mt-1">训练时随机关闭部分神经元，强制网络不依赖特定神经元</p>
+                    <div class="text-xs mt-1 font-mono">p_dropout = 0.1 ~ 0.5</div>
+                </div>
+                <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                    <h6 class="font-bold text-green-700 dark:text-green-300">Batch Normalization</h6>
+                    <p class="text-sm mt-1">标准化每层的输入，加速训练并提高稳定性</p>
+                    <div class="text-xs mt-1">$\hat{x} = \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}}$</div>
+                </div>
+                <div class="p-3 bg-purple-50 dark:bg-purple-900/20 rounded">
+                    <h6 class="font-bold text-purple-700 dark:text-purple-300">权重衰减</h6>
+                    <p class="text-sm mt-1">L2正则化，防止权重过大</p>
+                    <div class="text-xs mt-1">$L = L_{data} + \lambda \sum_i w_i^2$</div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <h5 class="font-bold mb-3">优化算法</h5>
+            <div class="space-y-3">
+                <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded">
+                    <h6 class="font-bold text-red-700 dark:text-red-300">Adam优化器</h6>
+                    <p class="text-sm mt-1">结合动量和自适应学习率，是目前最流行的优化器</p>
+                    <div class="text-xs mt-1">β₁=0.9, β₂=0.999, ε=1e-8</div>
+                </div>
+                <div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded">
+                    <h6 class="font-bold text-yellow-700 dark:text-yellow-300">学习率调度</h6>
+                    <p class="text-sm mt-1">动态调整学习率以获得更好的收敛</p>
+                    <ul class="text-xs mt-1 space-y-1">
+                        <li>StepLR: 阶梯式衰减</li>
+                        <li>CosineAnnealingLR: 余弦退火</li>
+                        <li>ReduceLROnPlateau: 自适应衰减</li>
+                    </ul>
+                </div>
+                <div class="p-3 bg-teal-50 dark:bg-teal-900/20 rounded">
+                    <h6 class="font-bold text-teal-700 dark:text-teal-300">梯度裁剪</h6>
+                    <p class="text-sm mt-1">防止梯度爆炸，特别在RNN中重要</p>
+                    <div class="text-xs mt-1">clip_grad_norm_(params, max_norm)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card p-6 mb-6">
+    <h3>3.6 交互式理解：梯度下降与优化器</h3>
+    <p class="text-themed-secondary mb-4">梯度下降是优化神经网络的核心算法。想象一下，我们想找到下图抛物线的最低点（最小损失）。我们从一个随机点开始，计算该点的"坡度"（梯度），然后沿着坡度最陡峭的反方向迈出一步。<b>学习率</b>决定了我们每一步迈多大。</p>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
         <div class="p-4 bg-themed-muted rounded-lg">
             <canvas id="gradient-descent-canvas" height="200"></canvas>
         </div>
         <div class="bg-themed-muted p-4 rounded-lg">
             <h4>参数调整</h4>
-            <p class="text-sm text-themed-secondary mb-4">调整学习率，点击“开始”观察优化过程。普通的梯度下降使用固定的学习率，而更高级的<b>Adam优化器</b>能为每个参数自适应地调整学习率，通常收敛更快、效果更好。</p>
-            <div class="mt-4">
-                <label for="lr-slider-gd" class="font-medium flex justify-between">学习率 (Learning Rate): <span id="lr-value-gd">0.1</span></label>
-                <input type="range" id="lr-slider-gd" min="0.01" max="1.0" step="0.01" value="0.1" class="slider w-full">
+            <p class="text-sm text-themed-secondary mb-4">调整学习率，点击"开始"观察优化过程。普通的梯度下降使用固定的学习率，而更高级的<b>Adam优化器</b>能为每个参数自适应地调整学习率，通常收敛更快、效果更好。</p>
+            <div class="space-y-3">
+                <div>
+                    <label for="lr-slider-gd" class="font-medium flex justify-between">学习率: <span id="lr-value-gd">0.1</span></label>
+                    <input type="range" id="lr-slider-gd" min="0.01" max="1.0" step="0.01" value="0.1" class="slider w-full">
+                </div>
+                <div>
+                    <label for="optimizer-select" class="font-medium block">优化器类型:</label>
+                    <select id="optimizer-select" class="w-full p-2 bg-white dark:bg-gray-700 border border-themed rounded">
+                        <option value="sgd">SGD</option>
+                        <option value="momentum">SGD + Momentum</option>
+                        <option value="adam" selected>Adam</option>
+                    </select>
+                </div>
             </div>
             <button id="start-gd-btn" class="mt-4 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">开始下降</button>
             <p id="gd-explanation" class="mt-4 text-sm text-themed-secondary"></p>
         </div>
     </div>
+    
+    <div class="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+        <h5 class="font-bold mb-2">不同优化器特点对比</h5>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div>
+                <b>SGD (随机梯度下降)</b>
+                <ul class="mt-1 space-y-1 text-themed-secondary">
+                    <li>简单直接</li>
+                    <li>可能陷入局部最优</li>
+                    <li>学习率需要仔细调节</li>
+                </ul>
+            </div>
+            <div>
+                <b>Momentum (动量)</b>
+                <ul class="mt-1 space-y-1 text-themed-secondary">
+                    <li>加速收敛</li>
+                    <li>减少震荡</li>
+                    <li>帮助跳出局部最优</li>
+                </ul>
+            </div>
+            <div>
+                <b>Adam (自适应)</b>
+                <ul class="mt-1 space-y-1 text-themed-secondary">
+                    <li>自适应学习率</li>
+                    <li>收敛速度快</li>
+                    <li>对超参数不敏感</li>
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>
-<div class="card p-6">
-    <h3>3.4 深度Q网络 (DQN)</h3>
+
+<div class="card p-6 mb-6">
+    <h3>3.7 深度Q网络 (DQN)</h3>
     <p class="text-themed-secondary mb-4">DQN是DRL的开山之作，它首次成功地将深度学习与Q-Learning结合。DQN使用一个神经网络来逼近Q函数 $Q(s, a; \theta) \approx Q^*(s, a)$。为了解决训练不稳定的问题，它引入了两项关键技术：</p>
+    
+    <h4>3.7.1 核心算法流程</h4>
+    <div class="p-4 bg-themed-muted rounded-lg mb-4">
+        <h5 class="font-bold mb-2">DQN训练流程</h5>
+        <ol class="text-sm space-y-2">
+            <li><b>环境交互:</b> 使用ε-greedy策略选择动作，收集经验(s,a,r,s')</li>
+            <li><b>经验存储:</b> 将经验存入回放缓冲区D</li>
+            <li><b>批量采样:</b> 从D中随机采样小批量数据</li>
+            <li><b>计算目标:</b> $y_i = r_i + \gamma \max_{a'} Q(s'_i, a'; \theta^-)$</li>
+            <li><b>损失计算:</b> $L = \frac{1}{N}\sum_i (y_i - Q(s_i, a_i; \theta))^2$</li>
+            <li><b>参数更新:</b> $\theta \leftarrow \theta - \alpha \nabla_\theta L$</li>
+            <li><b>目标网络更新:</b> 定期更新$\theta^- \leftarrow \theta$</li>
+        </ol>
+    </div>
+    
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
         <div class="p-4 bg-blue-500/10 rounded-lg">
             <h4 class="font-bold text-blue-600 dark:text-blue-400 mt-0">经验回放 (Experience Replay)</h4>
-            <p class="text-sm mt-2">将智能体的经验元组 $(s_t, a_t, r_t, s_{t+1})$ 存入一个“回放池”。训练时，从池中随机采样一个小批量数据进行更新。这打破了数据的时间相关性，提高了数据利用效率。</p>
+            <p class="text-sm mt-2">将智能体的经验元组 $(s_t, a_t, r_t, s_{t+1})$ 存入一个"回放池"。训练时，从池中随机采样一个小批量数据进行更新。这打破了数据的时间相关性，提高了数据利用效率。</p>
+            <div class="mt-2 text-xs p-2 bg-white dark:bg-gray-800 rounded">
+                缓冲区大小: 10⁴ ~ 10⁶ 条经验<br>
+                批量大小: 32 ~ 256 个样本
+            </div>
         </div>
         <div class="p-4 bg-green-500/10 rounded-lg">
             <h4 class="font-bold text-green-600 dark:text-green-400 mt-0">目标网络 (Target Network)</h4>
-            <p class="text-sm mt-2">使用一个独立的、更新较慢的“目标网络”来计算TD目标值。这使得学习目标在一段时间内保持稳定，避免了模型“追逐自己尾巴”的问题，大幅提升了训练的稳定性。</p>
+            <p class="text-sm mt-2">使用一个独立的、更新较慢的"目标网络"来计算TD目标值。这使得学习目标在一段时间内保持稳定，避免了模型"追逐自己尾巴"的问题，大幅提升了训练的稳定性。</p>
+            <div class="mt-2 text-xs p-2 bg-white dark:bg-gray-800 rounded">
+                更新频率: 每1000 ~ 10000步<br>
+                软更新: $\theta^- \leftarrow \tau\theta + (1-\tau)\theta^-$
+            </div>
+        </div>
+    </div>
+
+    <h4>3.7.2 DQN的改进变种</h4>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <div>
+            <h5 class="font-bold mb-2">Double DQN</h5>
+            <p class="text-sm text-themed-secondary mb-2">解决Q值过估计问题</p>
+            <div class="text-xs p-2 bg-themed-muted rounded">
+                $y_i = r_i + \gamma Q(s'_i, \arg\max_{a'} Q(s'_i, a'; \theta); \theta^-)$
+            </div>
+        </div>
+        <div>
+            <h5 class="font-bold mb-2">Dueling DQN</h5>
+            <p class="text-sm text-themed-secondary mb-2">分离状态价值和优势函数</p>
+            <div class="text-xs p-2 bg-themed-muted rounded">
+                $Q(s,a) = V(s) + A(s,a) - \frac{1}{|A|}\sum_{a'} A(s,a')$
+            </div>
+        </div>
+        <div>
+            <h5 class="font-bold mb-2">Prioritized Experience Replay</h5>
+            <p class="text-sm text-themed-secondary mb-2">优先回放TD误差大的经验</p>
+            <div class="text-xs p-2 bg-themed-muted rounded">
+                $P(i) = \frac{p_i^\alpha}{\sum_k p_k^\alpha}$, $p_i = |TD_i| + \epsilon$
+            </div>
+        </div>
+        <div>
+            <h5 class="font-bold mb-2">Rainbow DQN</h5>
+            <p class="text-sm text-themed-secondary mb-2">集成多种改进技术</p>
+            <div class="text-xs p-2 bg-themed-muted rounded">
+                Double + Dueling + Priority + Noisy + Categorical + N-step
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card p-6">
+    <h3>3.8 深度学习在工业控制中的挑战与机遇</h3>
+    <p class="text-themed-secondary mb-4">将深度学习技术应用到工业控制领域，既有巨大的机遇，也面临着独特的挑战。</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <h5 class="font-bold text-red-600 dark:text-red-400 mb-3">主要挑战</h5>
+            <div class="space-y-3">
+                <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded">
+                    <h6 class="font-bold mb-1">数据质量</h6>
+                    <p class="text-sm">工业数据常有噪声、缺失值、传感器故障等问题</p>
+                </div>
+                <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded">
+                    <h6 class="font-bold mb-1">实时性要求</h6>
+                    <p class="text-sm">控制决策需要在毫秒级响应，对模型推理速度要求极高</p>
+                </div>
+                <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded">
+                    <h6 class="font-bold mb-1">安全性与可靠性</h6>
+                    <p class="text-sm">工业系统故障代价巨大，需要极高的可靠性保证</p>
+                </div>
+                <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded">
+                    <h6 class="font-bold mb-1">可解释性</h6>
+                    <p class="text-sm">操作员需要理解AI的决策逻辑，监管部门要求算法透明</p>
+                </div>
+            </div>
+        </div>
+        <div>
+            <h5 class="font-bold text-green-600 dark:text-green-400 mb-3">技术机遇</h5>
+            <div class="space-y-3">
+                <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                    <h6 class="font-bold mb-1">多模态融合</h6>
+                    <p class="text-sm">结合时序数据、图像、文本等多种信息源</p>
+                </div>
+                <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                    <h6 class="font-bold mb-1">边缘计算</h6>
+                    <p class="text-sm">模型压缩和量化技术实现本地推理</p>
+                </div>
+                <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                    <h6 class="font-bold mb-1">数字孪生</h6>
+                    <p class="text-sm">物理仿真与神经网络结合的混合建模</p>
+                </div>
+                <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                    <h6 class="font-bold mb-1">联邦学习</h6>
+                    <p class="text-sm">多个工厂协同训练而不共享敏感数据</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+        <h5 class="font-bold text-blue-700 dark:text-blue-300 mb-2">未来发展趋势</h5>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div>
+                <b>神经符号结合</b>
+                <ul class="mt-1 space-y-1 text-themed-secondary">
+                    <li>知识图谱增强DRL</li>
+                    <li>因果推理网络</li>
+                    <li>物理约束神经网络</li>
+                </ul>
+            </div>
+            <div>
+                <b>自监督学习</b>
+                <ul class="mt-1 space-y-1 text-themed-secondary">
+                    <li>减少标注数据需求</li>
+                    <li>对比学习范式</li>
+                    <li>掩码自编码器</li>
+                </ul>
+            </div>
+            <div>
+                <b>神经架构搜索</b>
+                <ul class="mt-1 space-y-1 text-themed-secondary">
+                    <li>自动化网络设计</li>
+                    <li>硬件感知优化</li>
+                    <li>可微分架构搜索</li>
+                </ul>
+            </div>
         </div>
     </div>
 </div>`,
@@ -907,11 +1820,11 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="p-4 bg-blue-500/10 rounded-lg">
             <h4 class="font-bold text-blue-600 dark:text-blue-400 mt-0">演员 (Actor) - 策略网络</h4>
-            <p class="text-sm mt-2">演员是一个参数为 $\theta$ 的策略网络 $\pi_\theta(a|s)$。它负责“表演”，即根据当前状态 $s$ 输出一个动作（或动作的概率分布）。它的目标是通过学习，让自己的“表演”越来越好。</p>
+            <p class="text-sm mt-2">演员是一个参数为 $\theta$ 的策略网络 $\pi_\theta(a|s)$。它负责"表演"，即根据当前状态 $s$ 输出一个动作（或动作的概率分布）。它的目标是通过学习，让自己的"表演"越来越好。</p>
         </div>
         <div class="p-4 bg-green-500/10 rounded-lg">
             <h4 class="font-bold text-green-600 dark:text-green-400 mt-0">评论家 (Critic) - 价值网络</h4>
-            <p class="text-sm mt-2">评论家是一个参数为 $\phi$ 的价值网络 $V_\phi(s)$ 或 $Q_\phi(s,a)$。它负责“打分”，即评价演员在某个状态下的表现或者某个状态-动作对的好坏。它不产出动作，只为演员提供指导信号。</p>
+            <p class="text-sm mt-2">评论家是一个参数为 $\phi$ 的价值网络 $V_\phi(s)$ 或 $Q_\phi(s,a)$。它负责"打分"，即评价演员在某个状态下的表现或者某个状态-动作对的好坏。它不产出动作，只为演员提供指导信号。</p>
         </div>
     </div>
     <p class="text-themed-secondary mt-4">两者协同工作：演员在台上表演（选择动作），评论家在台下打分（评估动作好坏）。演员根据评论家的分数来调整自己的表演策略，力求获得更高的分数。</p>
@@ -935,7 +1848,85 @@
     <div id="ac-viz-explanation" class="text-center font-semibold h-10 mb-2"></div>
     <div id="ac-diagram-container" class="flex justify-center"></div>
 </div>`,
-            'chapter5': `<h2>第5章: PPO算法详解</h2><p class="text-lg text-themed-secondary mb-6">近端策略优化（PPO）是目前应用最广泛的RL算法之一，由OpenAI提出，以其卓越的稳定性和性能而闻名。其核心思想是：在更新策略时，步子不能迈得太大，避免新旧策略差异过大导致训练崩溃。</p><div class="card p-6"><h3 class="text-xl font-bold">交互式理解：可调节的信任域裁剪</h3><p class="text-themed-secondary mb-4">令 $r_t(\theta) = \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{old}}(a_t|s_t)}$ 为新旧策略的概率比。PPO通过裁剪（Clipping）来限制这个比率在一个预设的范围 $[1-\epsilon, 1+\epsilon]$ 内。请拖动 $\epsilon$ 滑块来调整信任域大小，并切换"好动作"与"坏动作"的情景，观察目标函数如何被裁剪。</p><div class="flex justify-center items-center gap-6 mb-4"><button id="ppo-toggle-advantage" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">切换到 "坏动作"</button><div class="w-64"><label for="epsilon-slider" class="font-medium flex justify-between">裁剪范围 $\epsilon$: <span id="epsilon-value">0.2</span></label><input type="range" id="epsilon-slider" min="0.05" max="0.5" step="0.01" value="0.2" class="slider w-full h-2 bg-themed-muted rounded-lg appearance-none cursor-pointer"></div></div><canvas id="ppo-canvas" class="w-full h-64 bg-themed-muted border border-themed rounded-lg"></canvas><p id="ppo-explanation" class="text-center mt-2 font-medium"></p></div><div class="card p-6 mt-6"><h3 class="text-xl font-bold">PPO核心组件与伪代码</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="space-y-4"><div class="p-4 bg-blue-500/10 rounded-lg"><h4 class="font-bold text-blue-600 dark:text-blue-400 mt-0">裁剪代理目标</h4><p class="text-sm mt-2">这是PPO的核心创新，它通过取未裁剪和已裁剪目标的较小值，悲观地限制了策略更新的幅度，避免策略突变。</p><div class="p-2 my-2 bg-themed-secondary rounded text-center">$$L^{CLIP}(\theta) = \mathbb{E}_t \left[ \min\left(r_t(\theta)\hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t\right) \right]$$</div></div><div class="p-4 bg-green-500/10 rounded-lg"><h4 class="font-bold text-green-600 dark:text-green-400 mt-0">广义优势估计 (GAE)</h4><p class="text-sm mt-2">PPO通常采用GAE来准确估计优势函数。GAE通过加权平均多个时间步的TD误差，有效降低了优势估计的方差，提供了更稳定的优势信号。</p></div></div><div><h4 class="font-bold">PPO 伪代码</h4><pre><code>Initialize policy and value networks
+            'chapter5': `<h2>第5章: PPO算法详解</h2><p class="text-lg text-themed-secondary mb-6">近端策略优化（PPO）是目前应用最广泛的RL算法之一，由OpenAI提出，以其卓越的稳定性和性能而闻名。其核心思想是：在更新策略时，步子不能迈得太大，避免新旧策略差异过大导致训练崩溃。</p>
+
+<div class="card p-6 mb-6">
+    <h3>5.1 策略梯度方法的进化</h3>
+    <p class="text-themed-secondary mb-4">PPO是策略梯度方法家族的重要成员。理解其发展脉络有助于深入理解PPO的设计思想。</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+            <h5 class="font-bold text-red-700 dark:text-red-300 mb-2">REINFORCE (1992)</h5>
+            <div class="text-xs p-2 bg-white dark:bg-gray-800 rounded mb-2">
+                $$\nabla J(\theta) = \mathbb{E}[\nabla \log \pi(a|s) G_t]$$
+            </div>
+            <ul class="text-sm space-y-1 text-themed-secondary">
+                <li>最基础的策略梯度算法</li>
+                <li>直接优化策略</li>
+                <li>方差大，学习不稳定</li>
+            </ul>
+        </div>
+        <div class="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+            <h5 class="font-bold text-yellow-700 dark:text-yellow-300 mb-2">TRPO (2015)</h5>
+            <div class="text-xs p-2 bg-white dark:bg-gray-800 rounded mb-2">
+                $$\text{s.t. } KL(\pi_{old}, \pi) \leq \delta$$
+            </div>
+            <ul class="text-sm space-y-1 text-themed-secondary">
+                <li>信任域约束策略更新</li>
+                <li>理论保证单调改进</li>
+                <li>计算复杂，二阶优化</li>
+            </ul>
+        </div>
+        <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+            <h5 class="font-bold text-green-700 dark:text-green-300 mb-2">PPO (2017)</h5>
+            <div class="text-xs p-2 bg-white dark:bg-gray-800 rounded mb-2">
+                $$\text{clip}(r_t, 1-\epsilon, 1+\epsilon)$$
+            </div>
+            <ul class="text-sm space-y-1 text-themed-secondary">
+                <li>裁剪替代信任域约束</li>
+                <li>计算简单，一阶优化</li>
+                <li>性能与TRPO相当</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="card p-6 mb-6">
+    <h3>5.2 PPO核心机制深入分析</h3>
+    <p class="text-themed-secondary mb-4">PPO的成功源于其巧妙的裁剪机制，它在保持算法简单性的同时实现了有效的策略约束。</p>
+    
+    <h4>5.2.1 重要性采样与概率比</h4>
+    <div class="p-4 bg-themed-muted rounded-lg mb-4">
+        <p class="text-sm mb-2">PPO基于重要性采样来利用旧策略的数据：</p>
+        <div class="text-center text-sm space-y-2">
+            <div>$$r_t(\theta) = \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{old}}(a_t|s_t)}$$</div>
+            <div>$$L^{IS}(\theta) = \mathbb{E}_t[r_t(\theta) \hat{A}_t]$$</div>
+        </div>
+        <p class="text-xs mt-2 text-themed-secondary">当$r_t(\theta) = 1$时，新旧策略相同；$r_t(\theta) > 1$表示新策略更倾向于选择该动作</p>
+    </div>
+    
+    <h4>5.2.2 裁剪目标函数的几何直觉</h4>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <h5 class="font-bold mb-2">好动作场景 ($\hat{A}_t > 0$)</h5>
+            <ul class="text-sm space-y-1 text-themed-secondary">
+                <li>希望增加该动作的概率</li>
+                <li>允许$r_t$增长到$1+\epsilon$</li>
+                <li>超过阈值后停止更新</li>
+                <li>防止过度优化</li>
+            </ul>
+        </div>
+        <div>
+            <h5 class="font-bold mb-2">坏动作场景 ($\hat{A}_t < 0$)</h5>
+            <ul class="text-sm space-y-1 text-themed-secondary">
+                <li>希望降低该动作的概率</li>
+                <li>允许$r_t$下降到$1-\epsilon$</li>
+                <li>低于阈值后停止更新</li>
+                <li>防止策略退化</li>
+            </ul>
+        </div>
+    </div>
+</div><div class="card p-6"><h3 class="text-xl font-bold">交互式理解：可调节的信任域裁剪</h3><p class="text-themed-secondary mb-4">令 $r_t(\theta) = \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{old}}(a_t|s_t)}$ 为新旧策略的概率比。PPO通过裁剪（Clipping）来限制这个比率在一个预设的范围 $[1-\epsilon, 1+\epsilon]$ 内。请拖动 $\epsilon$ 滑块来调整信任域大小，并切换"好动作"与"坏动作"的情景，观察目标函数如何被裁剪。</p><div class="flex justify-center items-center gap-6 mb-4"><button id="ppo-toggle-advantage" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">切换到 "坏动作"</button><div class="w-64"><label for="epsilon-slider" class="font-medium flex justify-between">裁剪范围 $\epsilon$: <span id="epsilon-value">0.2</span></label><input type="range" id="epsilon-slider" min="0.05" max="0.5" step="0.01" value="0.2" class="slider w-full h-2 bg-themed-muted rounded-lg appearance-none cursor-pointer"></div></div><canvas id="ppo-canvas" class="w-full h-64 bg-themed-muted border border-themed rounded-lg"></canvas><p id="ppo-explanation" class="text-center mt-2 font-medium"></p></div><div class="card p-6 mt-6"><h3 class="text-xl font-bold">PPO核心组件与伪代码</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="space-y-4"><div class="p-4 bg-blue-500/10 rounded-lg"><h4 class="font-bold text-blue-600 dark:text-blue-400 mt-0">裁剪代理目标</h4><p class="text-sm mt-2">这是PPO的核心创新，它通过取未裁剪和已裁剪目标的较小值，悲观地限制了策略更新的幅度，避免策略突变。</p><div class="p-2 my-2 bg-themed-secondary rounded text-center">$$L^{CLIP}(\theta) = \mathbb{E}_t \left[ \min\left(r_t(\theta)\hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t\right) \right]$$</div></div><div class="p-4 bg-green-500/10 rounded-lg"><h4 class="font-bold text-green-600 dark:text-green-400 mt-0">广义优势估计 (GAE)</h4><p class="text-sm mt-2">PPO通常采用GAE来准确估计优势函数。GAE通过加权平均多个时间步的TD误差，有效降低了优势估计的方差，提供了更稳定的优势信号。</p></div></div><div><h4 class="font-bold">PPO 伪代码</h4><pre><code>Initialize policy and value networks
 
 for iteration = 1, 2, ... do
 
@@ -955,13 +1946,100 @@ for iteration = 1, 2, ... do
   
   Update old policy
 end for</code></pre></div></div></div>`,
-            'chapter6': `<h2>第6章: SAC算法详解</h2><p class="text-lg text-themed-secondary mb-6">软演员-评论家（SAC）是一种基于最大熵强化学习框架的off-policy算法。SAC的目标是最大化奖励的同时，也最大化策略的**熵**（随机性），带来了极强的鲁棒性和探索效率，在许多连续控制任务中表现优异。</p><div class="card p-6"><h3 class="text-xl font-bold">交互式理解：探索与利用的权衡</h3><p class="text-themed-secondary mb-4">SAC的目标函数是 $J(\pi) = \sum \mathbb{E} [r(s_t, a_t) + \alpha \mathcal{H}(\pi(\cdot|s_t))]$。其中 $\mathcal{H}$ 是策略的熵，$\alpha$ 是控制熵重要性的温度参数。请调整温度参数 $\alpha$，观察策略（蓝色区域）的变化。高 $\alpha$ 鼓励探索，低 $\alpha$ 鼓励利用。</p><canvas id="sac-canvas" class="w-full h-64 bg-themed-muted border border-themed rounded-lg"></canvas><div class="mt-4"><label for="alpha-slider" class="font-medium flex justify-between">温度 $\alpha$: <span id="alpha-value">0.20</span></label><input type="range" id="alpha-slider" min="0.01" max="1.0" step="0.01" value="0.2" class="slider w-full h-2 bg-themed-muted rounded-lg appearance-none cursor-pointer"></div><p id="sac-explanation" class="text-center mt-2 font-medium"></p></div><div class="card p-6 mt-6"><h3 class="text-xl font-bold">SAC核心组件</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="p-4 bg-purple-500/10 rounded-lg"><h4 class="font-bold text-purple-600 dark:text-purple-400 mt-0">双Q网络 (Twin Q-Critics)</h4><p class="text-sm mt-2">为了缓解价值函数在off-policy学习中被过高估计的问题（Q-value overestimation），SAC采用两个独立的Q网络，并在计算TD目标时悲观地取其较小值，使学习过程更稳定。</p></div><div class="p-4 bg-teal-500/10 rounded-lg"><h4 class="font-bold text-teal-600 dark:text-teal-400 mt-0">自动熵调优</h4><p class="text-sm mt-2">手动选择一个固定的 $\alpha$ 很困难。SAC能将 $\alpha$ 作为一个可训练参数，自动调整它以使策略的实际熵动态地接近一个预设的目标熵，实现了探索和利用的自动平衡。</p></div></div></div>`,
+            'chapter6': `<h2>第6章: SAC算法详解</h2><p class="text-lg text-themed-secondary mb-6">软演员-评论家（SAC）是一种基于最大熵强化学习框架的off-policy算法。SAC的目标是最大化奖励的同时，也最大化策略的**熵**（随机性），带来了极强的鲁棒性和探索效率，在许多连续控制任务中表现优异。</p>
+
+<div class="card p-6 mb-6">
+    <h3>6.1 最大熵强化学习理论基础</h3>
+    <p class="text-themed-secondary mb-4">SAC基于最大熵强化学习框架，这是一个优雅的数学理论，将探索与利用统一在一个目标函数中。</p>
+    
+    <h4>6.1.1 熵正则化的直觉理解</h4>
+    <div class="p-4 bg-themed-muted rounded-lg mb-4">
+        <p class="text-sm mb-2">传统RL目标与最大熵RL目标的对比：</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h5 class="font-bold mb-2">传统RL目标</h5>
+                <div class="text-center text-sm p-2 bg-white dark:bg-gray-800 rounded">
+                    $$J(\pi) = \mathbb{E}_{\tau \sim \pi}[\sum_t \gamma^t r_t]$$
+                </div>
+                <p class="text-xs mt-2">只关注累积奖励最大化</p>
+            </div>
+            <div>
+                <h5 class="font-bold mb-2">最大熵RL目标</h5>
+                <div class="text-center text-sm p-2 bg-white dark:bg-gray-800 rounded">
+                    $$J(\pi) = \mathbb{E}_{\tau \sim \pi}[\sum_t \gamma^t (r_t + \alpha \mathcal{H}(\pi(\cdot|s_t)))]$$
+                </div>
+                <p class="text-xs mt-2">同时最大化奖励和策略熵</p>
+            </div>
+        </div>
+    </div>
+    
+    <h4>6.1.2 熵的作用机制</h4>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
+            <h6 class="font-bold text-blue-700 dark:text-blue-300">探索增强</h6>
+            <p class="text-sm mt-1">高熵策略倾向于尝试多样化的动作，自然地实现探索</p>
+        </div>
+        <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded">
+            <h6 class="font-bold text-green-700 dark:text-green-300">鲁棒性提升</h6>
+            <p class="text-sm mt-1">避免策略过早收敛到次优解，对环境变化更鲁棒</p>
+        </div>
+        <div class="p-3 bg-purple-50 dark:bg-purple-900/20 rounded">
+            <h6 class="font-bold text-purple-700 dark:text-purple-300">正则化效应</h6>
+            <p class="text-sm mt-1">防止策略过度自信，类似Dropout的正则化作用</p>
+        </div>
+    </div>
+</div>
+
+<div class="card p-6 mb-6">
+    <h3>6.2 SAC算法架构深入解析</h3>
+    <p class="text-themed-secondary mb-4">SAC采用了复杂而精巧的网络架构，每个组件都有其特定的作用。</p>
+    
+    <h4>6.2.1 四个神经网络的分工</h4>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="space-y-4">
+            <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
+                <h6 class="font-bold text-blue-700 dark:text-blue-300">策略网络 π(a|s)</h6>
+                <p class="text-sm mt-1">输出高斯分布的均值和方差参数，通过重参数化技巧采样动作</p>
+                <div class="text-xs mt-1 font-mono">μ, σ = π(s); a = μ + σ ⊙ ε</div>
+            </div>
+            <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                <h6 class="font-bold text-green-700 dark:text-green-300">双Q网络 Q₁, Q₂</h6>
+                <p class="text-sm mt-1">两个独立的Q网络，取较小值缓解Q值过估计</p>
+                <div class="text-xs mt-1 font-mono">Q_target = min(Q₁(s',a'), Q₂(s',a'))</div>
+            </div>
+        </div>
+        <div class="space-y-4">
+            <div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded">
+                <h6 class="font-bold text-yellow-700 dark:text-yellow-300">目标Q网络 Q₁', Q₂'</h6>
+                <p class="text-sm mt-1">软更新的目标网络，提供稳定的学习目标</p>
+                <div class="text-xs mt-1 font-mono">θ' ← τθ + (1-τ)θ'</div>
+            </div>
+            <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded">
+                <h6 class="font-bold text-red-700 dark:text-red-300">温度参数 α</h6>
+                <p class="text-sm mt-1">可学习的温度参数，自动调节探索-利用平衡</p>
+                <div class="text-xs mt-1 font-mono">∇α J = -α(log π + H_target)</div>
+            </div>
+        </div>
+    </div>
+    
+    <h4>6.2.2 SAC训练流程</h4>
+    <div class="p-4 bg-themed-muted rounded-lg">
+        <ol class="text-sm space-y-2">
+            <li><b>1. 环境交互:</b> 使用当前策略收集经验存入回放缓冲区</li>
+            <li><b>2. 采样批次:</b> 从缓冲区随机采样小批量转移</li>
+            <li><b>3. 更新Q网络:</b> 最小化Bellman误差，使用双Q技巧</li>
+            <li><b>4. 更新策略:</b> 最大化Q值和策略熵的加权和</li>
+            <li><b>5. 更新温度:</b> 自动调整α使熵接近目标值</li>
+            <li><b>6. 软更新:</b> 指数移动平均更新目标网络</li>
+        </ol>
+    </div>
+</div><div class="card p-6"><h3 class="text-xl font-bold">交互式理解：探索与利用的权衡</h3><p class="text-themed-secondary mb-4">SAC的目标函数是 $J(\pi) = \sum \mathbb{E} [r(s_t, a_t) + \alpha \mathcal{H}(\pi(\cdot|s_t))]$。其中 $\mathcal{H}$ 是策略的熵，$\alpha$ 是控制熵重要性的温度参数。请调整温度参数 $\alpha$，观察策略（蓝色区域）的变化。高 $\alpha$ 鼓励探索，低 $\alpha$ 鼓励利用。</p><canvas id="sac-canvas" class="w-full h-64 bg-themed-muted border border-themed rounded-lg"></canvas><div class="mt-4"><label for="alpha-slider" class="font-medium flex justify-between">温度 $\alpha$: <span id="alpha-value">0.20</span></label><input type="range" id="alpha-slider" min="0.01" max="1.0" step="0.01" value="0.2" class="slider w-full h-2 bg-themed-muted rounded-lg appearance-none cursor-pointer"></div><p id="sac-explanation" class="text-center mt-2 font-medium"></p></div><div class="card p-6 mt-6"><h3 class="text-xl font-bold">SAC核心组件</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="p-4 bg-purple-500/10 rounded-lg"><h4 class="font-bold text-purple-600 dark:text-purple-400 mt-0">双Q网络 (Twin Q-Critics)</h4><p class="text-sm mt-2">为了缓解价值函数在off-policy学习中被过高估计的问题（Q-value overestimation），SAC采用两个独立的Q网络，并在计算TD目标时悲观地取其较小值，使学习过程更稳定。</p></div><div class="p-4 bg-teal-500/10 rounded-lg"><h4 class="font-bold text-teal-600 dark:text-teal-400 mt-0">自动熵调优</h4><p class="text-sm mt-2">手动选择一个固定的 $\alpha$ 很困难。SAC能将 $\alpha$ 作为一个可训练参数，自动调整它以使策略的实际熵动态地接近一个预设的目标熵，实现了探索和利用的自动平衡。</p></div></div></div>`,
             'quiz1': `<h2>阶段小测: 核心算法</h2><p class="text-lg text-themed-secondary mb-6">检验一下您对核心算法章节的理解程度吧！</p><div id="quiz-container" class="card p-6"></div>`,
             'chapter7': `<h2>第7章: CMDP构建实验室</h2><p class="text-lg text-themed-secondary mb-6">对于既要追求经济效益，又必须遵守安全红线的任务（如锅炉壁温不能超限），我们引入**约束马尔可夫决策过程（CMDP）**。智能体的目标是在满足成本约束的前提下，最大化累积奖励。</p><div class="card p-6"><div class="grid grid-cols-1 lg:grid-cols-2 gap-8"><div id="cmdp-builder-panel"><h3 class="text-xl font-bold">1. 构建您的CMDP模型</h3><p class="text-themed-secondary mb-6">请勾选您希望纳入模型的变量。<b>奖励</b>是我们希望最大化的指标，而<b>成本/约束</b>是我们必须遵守的红线。</p><div class="mb-4"><h4 class="font-bold text-lg mb-2 text-indigo-500 dark:text-indigo-400">S - 选择状态</h4><div class="space-y-2 text-sm p-4 bg-themed-muted rounded-lg"><label class="flex items-center"><input type="checkbox" class="mr-2 cmdp-checkbox" data-target="component-nox-meter" checked> NOx浓度</label><label class="flex items-center"><input type="checkbox" class="mr-2 cmdp-checkbox" data-target="component-co-meter" checked> CO浓度</label><label class="flex items-center"><input type="checkbox" class="mr-2 cmdp-checkbox" data-target="component-efficiency-meter" checked> 热效率</label><label class="flex items-center"><input type="checkbox" class="mr-2 cmdp-checkbox" data-target="component-temp-meter" checked> 关键壁温</label></div></div><div class="mb-4"><h4 class="font-bold text-lg mb-2 text-green-600 dark:text-green-500">A - 选择动作</h4><div class="space-y-2 text-sm p-4 bg-themed-muted rounded-lg"><label class="flex items-center"><input type="checkbox" class="mr-2 cmdp-checkbox" data-target="component-air-slider" checked> 总风量</label><label class="flex items-center"><input type="checkbox" class="mr-2 cmdp-checkbox" data-target="component-tilt-slider" checked> 燃烧器摆角</label><label class="flex items-center"><input type="checkbox" class="mr-2 cmdp-checkbox" data-target="component-ofa-slider" checked> 燃尽风占比</label></div></div><div class="mb-4"><h4 class="font-bold text-lg mb-2 text-amber-600 dark:text-amber-500">R - 定义奖励</h4><div class="space-y-2 text-sm p-4 bg-themed-muted rounded-lg"><label class="flex items-center"><input type="checkbox" class="mr-2 cmdp-checkbox" data-target="component-efficiency-meter" data-type="reward" checked> 奖励：提升热效率</label><label class="flex items-center"><input type="checkbox" class="mr-2 cmdp-checkbox" data-target="component-nox-meter" data-type="reward"> 奖励：降低NOx</label></div></div><div class="mb-4"><h4 class="font-bold text-lg mb-2 text-red-600 dark:text-red-500">C - 定义成本/约束</h4><div class="space-y-2 text-sm p-4 bg-themed-muted rounded-lg"><label class="flex items-center"><input type="checkbox" class="mr-2 cmdp-checkbox" data-target="component-temp-meter" data-type="cost" checked> 约束：壁温</label><label class="flex items-center"><input type="checkbox" class="mr-2 cmdp-checkbox" data-target="component-co-meter" data-type="cost"> 约束：CO浓度</label></div></div></div><div><h3 class="text-xl font-bold">2. 实时预览与交互</h3><p class="text-themed-secondary mb-6">这里是您构建的虚拟锅炉。被定义为"奖励"的模块会以绿色高亮，"约束"模块以红色高亮。</p><div class="p-4 rounded-lg bg-slate-700 flex flex-col items-center justify-start min-h-[500px]"><h4 class="font-bold text-lg mb-2 text-white">🔥 虚拟锅炉实时视图</h4><div id="boiler-visual-container-ch7" class="w-48 h-64 bg-slate-800 rounded-t-lg relative overflow-hidden mt-4"><div id="flame-visual-ch7" class="flame-visual"></div></div><div id="dashboard-ch7" class="w-full mt-6 space-y-4 p-2"><div id="component-nox-meter" class="preview-component p-2 rounded-md transition-all duration-300"><label class="font-medium text-white text-sm">NOx</label><div class="w-full bg-slate-500 rounded-full h-3"><div id="nox-meter-fill-ch7" class="bg-red-500 h-3 rounded-full"></div></div></div><div id="component-co-meter" class="preview-component p-2 rounded-md transition-all duration-300"><label class="font-medium text-white text-sm">CO</label><div class="w-full bg-slate-500 rounded-full h-3"><div id="co-meter-fill-ch7" class="bg-amber-500 h-3 rounded-full"></div></div></div><div id="component-temp-meter" class="preview-component p-2 rounded-md transition-all duration-300"><label class="font-medium text-white text-sm">壁温</label><div class="w-full bg-slate-500 rounded-full h-3"><div id="temp-meter-fill-ch7" class="bg-orange-500 h-3 rounded-full"></div></div></div><div id="component-efficiency-meter" class="preview-component p-2 rounded-md transition-all duration-300"><label class="font-medium text-white text-sm">热效率</label><div class="text-right"><span id="efficiency-value-ch7" class="text-xl font-bold text-green-400">92.50</span> %</div></div></div></div><div id="controls-ch7" class="mt-4 p-4 bg-themed-secondary rounded-lg space-y-4 border border-themed"><div id="component-air-slider" class="preview-component"><label for="air-slider-ch7" class="font-medium flex justify-between text-sm">总风量: <span id="air-value-ch7">75</span>%</label><input type="range" id="air-slider-ch7" min="50" max="100" value="75" class="slider w-full"></div><div id="component-tilt-slider" class="preview-component"><label for="tilt-slider-ch7" class="font-medium flex justify-between text-sm">摆角: <span id="tilt-value-ch7">0</span>°</label><input type="range" id="tilt-slider-ch7" min="-15" max="15" value="0" class="slider w-full"></div><div id="component-ofa-slider" class="preview-component"><label for="ofa-slider-ch7" class="font-medium flex justify-between text-sm">OFA占比: <span id="ofa-value-ch7">30</span>%</label><input type="range" id="ofa-slider-ch7" min="10" max="50" value="30" class="slider w-full"></div></div></div></div><div class="mt-8 pt-4 border-t border-themed"><h3 class="text-xl font-bold">3. 您生成的CMDP模型</h3><div id="cmdp-summary-ch7" class="text-sm grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-indigo-500/10 rounded-lg mt-4"><div><strong>状态:</strong><ul id="summary-State-ch7" class="list-disc list-inside"></ul></div><div><strong>动作:</strong><ul id="summary-Action-ch7" class="list-disc list-inside"></ul></div><div><strong>奖励:</strong><ul id="summary-Reward-ch7" class="list-disc list-inside"></ul></div><div><strong>成本:</strong><ul id="summary-Cost-ch7" class="list-disc list-inside"></ul></div></div></div></div>`,
             'chapter8': `<h2>第8章: 构建数字孪生</h2><p class="text-lg text-themed-secondary mb-6">RL需要在环境中进行海量试错，这在真实的工业设备上是不可行的。因此，构建一个高保真的仿真环境——"数字孪生"——是项目成功的先决条件。</p><div class="card p-6 mb-6"><h3 class="text-xl font-bold">什么是数字孪生？</h3><p class="text-themed-secondary">数字孪生是真实物理系统的虚拟副本，能模拟真实锅炉的动态响应。构建方法主要有两类：</p><ul class="list-disc list-inside space-y-2 text-themed-secondary"><li><b>机理建模</b>：基于物理定律（如流体力学、传热学、化学反应动力学）构建复杂的微分方程组。优点是泛化性强，可解释性好；缺点是建模难度大，计算量巨大。</li><li><b>数据驱动建模</b>：利用电厂DCS系统积累的历史数据，通过机器学习方法（如LSTM、Transformer）学习输入（控制动作）与输出（状态指标）的映射关系。优点是建模快速；缺点是依赖数据质量，泛化能力和可解释性可能较差。</li></ul><p class="text-themed-secondary mt-4">在实践中，通常将两者结合，用机理模型搭建基础框架，再用数据驱动模型修正和拟合机理模型与现实的偏差。</p></div><div class="card p-6 mb-6"><h3 class="text-xl font-bold">"仿真到现实"的鸿沟 (Sim-to-Real Gap)</h3><p class="mb-4 text-themed-secondary">任何仿真都无法100%复刻现实。缩小这个鸿沟至关重要。一种有效的技术是**领域随机化 (Domain Randomization)**：在训练时，故意给仿真环境增加各种随机性（如传感器噪声、执行器延迟、煤质波动等），迫使AI学习一个对这些不确定性不敏感的、更为鲁棒的策略。</p></div><div class="card p-6"><h3 class="text-xl font-bold">交互演示：模型质量与鲁棒性</h3><p class="text-themed-secondary mb-4">拖动滑块模拟模型与现实的匹配程度。黑色实线代表"真实世界"，蓝色虚线代表数字孪生模型的预测。匹配度越低，"Sim-to-Real"的鸿沟越大。</p><canvas id="sim-real-canvas" class="w-full h-64 bg-themed-muted border border-themed rounded-lg"></canvas><div><label for="model-quality-slider" class="font-medium flex justify-between">模型-现实匹配度: <span id="model-quality-value">50</span>%</label><input type="range" id="model-quality-slider" min="10" max="98" step="1" value="50" class="slider w-full h-2 bg-themed-muted rounded-lg"></div></div>`,
-            'chapter9': `<h2>第9章: 训练实验与调试 (专业版)</h2><p class="text-lg text-themed-secondary mb-8">欢迎来到RL训练实验室！在这个更高级的可视化环境中，您不仅能看到智能体的移动，还能实时观察每个状态下所有动作的Q值（以热力图形式呈现），从而更深刻地理解智能体的“决策过程”。</p><div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="lg:col-span-1 card p-6"><h3 class="text-xl font-bold mt-0">参数调节</h3><div class="space-y-4"><div><label for="gamma-slider" class="font-medium flex justify-between">远见程度 ($\gamma$): <span id="gamma-value">0.9</span></label><input type="range" id="gamma-slider" min="0.5" max="0.99" step="0.01" value="0.9" class="slider w-full"></div><div><label for="lr-slider" class="font-medium flex justify-between">学习率 ($\alpha_{lr}$): <span id="lr-value">0.1</span></label><input type="range" id="lr-slider" min="0.01" max="0.5" step="0.01" value="0.1" class="slider w-full"></div><div><label for="epsilon-slider-ch9" class="font-medium flex justify-between">探索率 ($\epsilon$): <span id="epsilon-value-ch9">0.2</span></label><input type="range" id="epsilon-slider-ch9" min="0.05" max="1.0" step="0.05" value="0.2" class="slider w-full"></div></div><button id="start-sim" class="mt-6 w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-indigo-400">开始训练</button></div><div class="lg:col-span-2 card p-6"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><h3 class="text-xl font-bold mt-0">Q值与策略可视化</h3><canvas id="rl-canvas" class="w-full bg-themed-muted border border-themed rounded-lg aspect-square"></canvas><div class="flex justify-around text-xs mt-2 flex-wrap"><span class="flex items-center"><div class="w-3 h-3 rounded-full bg-blue-500 mr-1"></div>智能体</span><span class="flex items-center"><div class="w-3 h-3 rounded-full bg-green-200 mr-1"></div>目标</span><span class="flex items-center"><div class="w-3 h-3 rounded-full bg-red-200 mr-1"></div>危险</span></div></div><div><h3 class="text-xl font-bold mt-0">学习曲线 (平均奖励)</h3><div class="w-full h-64 border border-themed rounded-lg p-2"><canvas id="rewardChart"></canvas></div><div class="mt-2 text-center text-sm"><p>回合: <span id="episode-counter">0</span></p><p>平均奖励: <span id="total-reward">0</span></p></div></div></div></div></div>`,
+            'chapter9': `<h2>第9章: 训练实验与调试 (专业版)</h2><p class="text-lg text-themed-secondary mb-8">欢迎来到RL训练实验室！在这个更高级的可视化环境中，您不仅能看到智能体的移动，还能实时观察每个状态下所有动作的Q值（以热力图形式呈现），从而更深刻地理解智能体的"决策过程"。</p><div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="lg:col-span-1 card p-6"><h3 class="text-xl font-bold mt-0">参数调节</h3><div class="space-y-4"><div><label for="gamma-slider" class="font-medium flex justify-between">远见程度 ($\gamma$): <span id="gamma-value">0.9</span></label><input type="range" id="gamma-slider" min="0.5" max="0.99" step="0.01" value="0.9" class="slider w-full"></div><div><label for="lr-slider" class="font-medium flex justify-between">学习率 ($\alpha_{lr}$): <span id="lr-value">0.1</span></label><input type="range" id="lr-slider" min="0.01" max="0.5" step="0.01" value="0.1" class="slider w-full"></div><div><label for="epsilon-slider-ch9" class="font-medium flex justify-between">探索率 ($\epsilon$): <span id="epsilon-value-ch9">0.2</span></label><input type="range" id="epsilon-slider-ch9" min="0.05" max="1.0" step="0.05" value="0.2" class="slider w-full"></div></div><button id="start-sim" class="mt-6 w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-indigo-400">开始训练</button></div><div class="lg:col-span-2 card p-6"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><h3 class="text-xl font-bold mt-0">Q值与策略可视化</h3><canvas id="rl-canvas" class="w-full bg-themed-muted border border-themed rounded-lg aspect-square"></canvas><div class="flex justify-around text-xs mt-2 flex-wrap"><span class="flex items-center"><div class="w-3 h-3 rounded-full bg-blue-500 mr-1"></div>智能体</span><span class="flex items-center"><div class="w-3 h-3 rounded-full bg-green-200 mr-1"></div>目标</span><span class="flex items-center"><div class="w-3 h-3 rounded-full bg-red-200 mr-1"></div>危险</span></div></div><div><h3 class="text-xl font-bold mt-0">学习曲线 (平均奖励)</h3><div class="w-full h-64 border border-themed rounded-lg p-2"><canvas id="rewardChart"></canvas></div><div class="mt-2 text-center text-sm"><p>回合: <span id="episode-counter">0</span></p><p>平均奖励: <span id="total-reward">0</span></p></div></div></div></div></div>`,
             'chapter10': `<h2>第10章: 三阶段安全部署</h2><p class="text-lg text-themed-secondary mb-6">将AI安全地引入到现实工厂中，是一个比算法本身更具挑战性的工程问题。我们必须采用一套循序渐进的策略，其核心是建立信任、管理风险，确保万无一失。</p><div class="flex flex-col lg:flex-row gap-6"><div class="w-full lg:w-1/3 space-y-2"><div id="step1" class="p-4 rounded-lg cursor-pointer deployment-step" onclick="selectStep(1)"><h4 class="font-bold text-lg mt-0">阶段一：建议模式</h4><p class="text-sm">AI作为"影子顾问"，零风险验证性能。</p></div><div id="step2" class="p-4 rounded-lg cursor-pointer deployment-step" onclick="selectStep(2)"><h4 class="font-bold text-lg mt-0">阶段二：监督控制</h4><p class="text-sm">AI调整PID设定值，利用现有系统作为安全网。</p></div><div id="step3" class="p-4 rounded-lg cursor-pointer deployment-step" onclick="selectStep(3)"><h4 class="font-bold text-lg mt-0">阶段三：直接控制</h4><p class="text-sm">AI直接输出指令，但须通过"安全层"过滤。</p></div></div><div id="step-content" class="flex-1 card p-6 min-h-[300px]"></div></div>`,
-            'chapter11': `<h2>第11章: 总结与未来</h2><p class="text-lg text-themed-secondary mb-6">我们从锅炉原理出发，探讨了如何将工业问题抽象为CMDP模型，介绍了PPO和SAC等算法，并阐述了从数字孪生到三阶段安全部署的完整工程实践框架。成功的工业AI应用，是**算法、领域知识和工程实践**三者深度融合的产物。</p><div class="card p-6 mb-6"><h3 class="text-xl font-bold">前沿探索：决策转换器 (Decision Transformer)</h3><p class="text-themed-secondary mb-4">我们在第二章中介绍了使用Transformer作为状态编码器的思路。<b>决策转换器 (Decision Transformer, DT)</b> 更进一步，将整个RL问题重新定义为一个<b>序列建模问题</b>，这在处理工业离线数据时尤其强大。</p><div id="decision-transformer-diagram" class="p-4 bg-themed-muted rounded-lg flex justify-center items-center my-4"></div><p class="text-themed-secondary">与传统RL寻求最优价值函数 $V^*$ 或策略 $\pi^*$ 不同，DT将历史轨迹数据格式化为“期望回报-状态-动作”($\hat{R}_t, s_t, a_t$)的序列，然后训练一个Transformer模型，在给定未来的期望回报和过去的状态-动作历史后，自回归地预测出下一个能实现该期望回报的动作 $a_t$。</p><p class="mt-4 text-themed-secondary">这种方法的优势在于：<br><ul class="list-disc list-inside ml-4"><li>能充分利用离线数据集，无需在线交互，非常适合工业场景。</li><li>能有效捕捉工业过程中的长时序动态。</li><li>通过设定不同的期望回报，可以灵活地引导策略的“野心水平”（例如，追求高效率还是低排放）。</li></ul></p></div><div class="card p-6"><h3 class="text-xl font-bold">未来研究方向</h3><p class="text-themed-secondary mb-6">锅炉优化领域仍有广阔的探索空间：</p><div class="grid grid-cols-1 md:grid-cols-3 gap-6"><div class="p-4 bg-themed-muted rounded-lg hover:shadow-md transition"><h4 class="font-bold text-lg mt-0">多智能体 (MARL)</h4><p class="text-sm mt-2">将每个燃烧器视为一个独立的智能体，学习协同配合，以实现比单智能体更精细的控制。</p></div><div class="p-4 bg-themed-muted rounded-lg hover:shadow-md transition"><h4 class="font-bold text-lg mt-0">可解释性 (XAI)</h4><p class="text-sm mt-2">让AI不再是"黑箱"，能够解释其决策原因，对于建立操作员信任至关重要。</p></div><div class="p-4 bg-themed-muted rounded-lg hover:shadow-md transition"><h4 class="font-bold text-lg mt-0">迁移学习与终身学习</h4><p class="text-sm mt-2">将在A机组上训练好的模型，快速适配到B机组上。并让模型在上线后能持续地在线学习，适应新情况。</p></div></div></div>`,
+            'chapter11': `<h2>第11章: 总结与未来</h2><p class="text-lg text-themed-secondary mb-6">我们从锅炉原理出发，探讨了如何将工业问题抽象为CMDP模型，介绍了PPO和SAC等算法，并阐述了从数字孪生到三阶段安全部署的完整工程实践框架。成功的工业AI应用，是**算法、领域知识和工程实践**三者深度融合的产物。</p><div class="card p-6 mb-6"><h3 class="text-xl font-bold">前沿探索：决策转换器 (Decision Transformer)</h3><p class="text-themed-secondary mb-4">我们在第二章中介绍了使用Transformer作为状态编码器的思路。<b>决策转换器 (Decision Transformer, DT)</b> 更进一步，将整个RL问题重新定义为一个<b>序列建模问题</b>，这在处理工业离线数据时尤其强大。</p><div id="decision-transformer-diagram" class="p-4 bg-themed-muted rounded-lg flex justify-center items-center my-4"></div><p class="text-themed-secondary">与传统RL寻求最优价值函数 $V^*$ 或策略 $\pi^*$ 不同，DT将历史轨迹数据格式化为"期望回报-状态-动作"($\hat{R}_t, s_t, a_t$)的序列，然后训练一个Transformer模型，在给定未来的期望回报和过去的状态-动作历史后，自回归地预测出下一个能实现该期望回报的动作 $a_t$。</p><p class="mt-4 text-themed-secondary">这种方法的优势在于：<br><ul class="list-disc list-inside ml-4"><li>能充分利用离线数据集，无需在线交互，非常适合工业场景。</li><li>能有效捕捉工业过程中的长时序动态。</li><li>通过设定不同的期望回报，可以灵活地引导策略的"野心水平"（例如，追求高效率还是低排放）。</li></ul></p></div><div class="card p-6"><h3 class="text-xl font-bold">未来研究方向</h3><p class="text-themed-secondary mb-6">锅炉优化领域仍有广阔的探索空间：</p><div class="grid grid-cols-1 md:grid-cols-3 gap-6"><div class="p-4 bg-themed-muted rounded-lg hover:shadow-md transition"><h4 class="font-bold text-lg mt-0">多智能体 (MARL)</h4><p class="text-sm mt-2">将每个燃烧器视为一个独立的智能体，学习协同配合，以实现比单智能体更精细的控制。</p></div><div class="p-4 bg-themed-muted rounded-lg hover:shadow-md transition"><h4 class="font-bold text-lg mt-0">可解释性 (XAI)</h4><p class="text-sm mt-2">让AI不再是"黑箱"，能够解释其决策原因，对于建立操作员信任至关重要。</p></div><div class="p-4 bg-themed-muted rounded-lg hover:shadow-md transition"><h4 class="font-bold text-lg mt-0">迁移学习与终身学习</h4><p class="text-sm mt-2">将在A机组上训练好的模型，快速适配到B机组上。并让模型在上线后能持续地在线学习，适应新情况。</p></div></div></div>`,
             'chapter12': `<h2>第12章: 高级主题 - 离线强化学习</h2><p class="text-lg text-themed-secondary mb-6">在许多现实世界的工业应用中，让一个未经训练的智能体自由地与环境（如真实的锅炉）交互来进行"试错"学习是不可行的——成本高昂且风险巨大。离线强化学习（Offline Reinforcement Learning）正是在这种背景下应运而生的一套关键技术。</p><div class="card p-6 mb-6"><h3 class="text-xl font-bold">什么是离线RL？</h3><p class="text-themed-secondary mb-4">与传统的在线RL（Online RL）在学习过程中可以不断与环境交互并收集新数据不同，离线RL的目标是**仅从一个预先收集好的、固定的历史数据集中学习出一个有效的策略**。这个数据集可能来自于人类专家的操作记录、传统控制器（如PID）的运行日志，或者之前其他策略的运行数据。</p><div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center"><div class="p-4 bg-blue-500/10 rounded-lg"><h4 class="font-bold text-blue-600 dark:text-blue-400 mt-0">在线RL (Online RL)</h4><p class="text-sm mt-2">智能体与环境构成一个闭环。智能体执行动作 -> 环境反馈 -> 智能体更新策略 -> 执行新动作... 这个循环不断进行。</p></div><div class="p-4 bg-green-500/10 rounded-lg"><h4 class="font-bold text-green-600 dark:text-green-400 mt-0">离线RL (Offline RL)</h4><p class="text-sm mt-2">学习过程与数据收集过程完全分离。我们只有一个固定的数据集 $D = \{(s, a, r, s')\}$，并且在学习期间无法与环境进行任何新的交互。</p></div></div></div><div class="card p-6"><h3 class="text-xl font-bold">核心挑战：分布外推误差</h3><p class="text-themed-secondary mb-4">离线RL的主要挑战来自于**分布偏移（Distributional Shift）**。当学习的策略 $\pi_\theta$ 想要尝试一个动作 $a$，而这个动作在数据集的行为策略 $\pi_\beta$ 中很少或从未出现过时，价值函数对这个"分布外"（Out-of-Distribution, OOD）动作的估计就会变得非常不准确，产生巨大的外推误差。现代离线RL算法的核心思想是**策略约束（Policy Constraint）**，即学习的策略应该被约束，使其尽可能地与数据集中的行为策略保持接近。</p><div id="offline-rl-diagram" class="p-4 bg-themed-muted rounded-lg flex justify-center items-center mt-4"></div></div>`,
             'glossary': `<h2>关键术语表 (Glossary)</h2>
             <div class="space-y-4">
@@ -1241,7 +2319,7 @@ end for</code></pre></div></div></div>`,
             const functions = {
                 relu: {
                     func: x => Math.max(0, x),
-                    desc: "<b>ReLU (Rectified Linear Unit):</b> 计算简单，是目前最常用的激活函数。它能有效缓解梯度消失问题，但负值部分的梯度为0，可能导致神经元“死亡”。"
+                    desc: "<b>ReLU (Rectified Linear Unit):</b> 计算简单，是目前最常用的激活函数。它能有效缓解梯度消失问题，但负值部分的梯度为0，可能导致神经元"死亡"。"
                 },
                 sigmoid: {
                     func: x => 1 / (1 + Math.exp(-x)),
@@ -1250,6 +2328,14 @@ end for</code></pre></div></div></div>`,
                 tanh: {
                     func: x => Math.tanh(x),
                     desc: "<b>Tanh (Hyperbolic Tangent):</b> 将输入压缩到(-1, 1)之间，输出以0为中心，通常比Sigmoid收敛更快。但仍存在梯度饱和问题。"
+                },
+                leaky: {
+                    func: x => x > 0 ? x : 0.01 * x,
+                    desc: "<b>Leaky ReLU:</b> 解决了ReLU的"死神经元"问题，为负值提供小的梯度(通常0.01)。在负值区域仍然保持一定的激活，提高了网络的表达能力。"
+                },
+                gelu: {
+                    func: x => 0.5 * x * (1 + Math.tanh(Math.sqrt(2/Math.PI) * (x + 0.044715 * Math.pow(x, 3)))),
+                    desc: "<b>GELU (Gaussian Error Linear Unit):</b> 基于高斯分布的激活函数，在Transformer等现代架构中广泛使用。相比ReLU更平滑，能更好地处理负值输入。"
                 }
             };
 
