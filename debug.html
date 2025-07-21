@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>调试测试</title>
+</head>
+<body>
+    <h1>基础测试页面</h1>
+    <button id="testBtn">测试按钮</button>
+    <div id="result"></div>
+    
+    <script>
+        document.getElementById('testBtn').addEventListener('click', function() {
+            document.getElementById('result').innerHTML = '按钮点击成功！';
+        });
+        
+        console.log('页面加载完成');
+    </script>
+</body>
+</html>
