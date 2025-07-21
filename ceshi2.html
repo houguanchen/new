@@ -812,6 +812,124 @@
             <p class="mt-4 text-sm text-themed-secondary"><b>挑战:</b> PID参数在特定工况下调优后表现良好，但当工况（负荷、煤质）变化时，固定的PID参数难以始终保持最优。这正是RL的用武之地。</p>
         </div>
     </div>
+</div>
+
+<div class="card p-6 mb-6">
+    <h3>1.6 现代锅炉控制系统架构</h3>
+    <p class="text-themed-secondary mb-4">现代大型锅炉采用分层递阶控制结构，从底层的基础自动化到上层的优化控制，形成了完整的控制体系。</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg text-center">
+            <h5 class="font-bold text-green-700 dark:text-green-300 mb-2">L0层 - 过程层</h5>
+            <ul class="text-sm space-y-1">
+                <li>传感器、执行器</li>
+                <li>现场仪表</li>
+                <li>安全联锁</li>
+            </ul>
+        </div>
+        <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center">
+            <h5 class="font-bold text-blue-700 dark:text-blue-300 mb-2">L1层 - 控制层</h5>
+            <ul class="text-sm space-y-1">
+                <li>DCS控制站</li>
+                <li>PID控制回路</li>
+                <li>逻辑控制</li>
+            </ul>
+        </div>
+        <div class="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-center">
+            <h5 class="font-bold text-purple-700 dark:text-purple-300 mb-2">L2层 - 监控层</h5>
+            <ul class="text-sm space-y-1">
+                <li>操作员站</li>
+                <li>工程师站</li>
+                <li>历史数据库</li>
+            </ul>
+        </div>
+    </div>
+
+    <h4>主要控制回路</h4>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <h5 class="font-bold mb-2">燃烧控制系统</h5>
+            <ul class="text-sm space-y-1 text-themed-secondary">
+                <li><b>主汽压力控制</b>：调节给煤量</li>
+                <li><b>汽温控制</b>：调节减温水量、燃烧器摆角</li>
+                <li><b>氧量控制</b>：调节总风量</li>
+                <li><b>炉膛负压控制</b>：调节引风机</li>
+            </ul>
+        </div>
+        <div>
+            <h5 class="font-bold mb-2">给水控制系统</h5>
+            <ul class="text-sm space-y-1 text-themed-secondary">
+                <li><b>汽包水位控制</b>：三冲量控制</li>
+                <li><b>给水温度控制</b>：调节抽汽量</li>
+                <li><b>给水压力控制</b>：调节给水泵</li>
+                <li><b>除氧器水位</b>：调节补水量</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="card p-6">
+    <h3>1.7 锅炉控制的挑战与机遇</h3>
+    <p class="text-themed-secondary mb-4">传统控制方法在面对现代电力系统的新要求时遇到了挑战，这为人工智能技术的应用提供了机遇。</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <h5 class="font-bold text-red-600 dark:text-red-400 mb-3">传统控制的局限性</h5>
+            <div class="space-y-3">
+                <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded">
+                    <h6 class="font-bold mb-1">参数固化问题</h6>
+                    <p class="text-sm">PID参数针对特定工况调优，难以适应煤质变化、负荷波动等</p>
+                </div>
+                <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded">
+                    <h6 class="font-bold mb-1">多目标冲突</h6>
+                    <p class="text-sm">效率、排放、安全等多目标往往冲突，传统控制难以动态平衡</p>
+                </div>
+            </div>
+        </div>
+        <div>
+            <h5 class="font-bold text-green-600 dark:text-green-400 mb-3">人工智能的优势</h5>
+            <div class="space-y-3">
+                <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                    <h6 class="font-bold mb-1">自适应学习</h6>
+                    <p class="text-sm">通过强化学习动态调整策略，适应工况变化</p>
+                </div>
+                <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                    <h6 class="font-bold mb-1">多目标优化</h6>
+                    <p class="text-sm">通过约束优化框架同时考虑效率、环保、安全</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+        <h5 class="font-bold text-blue-700 dark:text-blue-300 mb-2">AI在锅炉控制中的应用前景</h5>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div>
+                <b>智能燃烧优化</b>
+                <ul class="mt-1 space-y-1 text-themed-secondary">
+                    <li>动态调节空燃比</li>
+                    <li>优化燃烧器摆角</li>
+                    <li>减少NOx排放</li>
+                </ul>
+            </div>
+            <div>
+                <b>预测性维护</b>
+                <ul class="mt-1 space-y-1 text-themed-secondary">
+                    <li>设备状态监测</li>
+                    <li>故障早期预警</li>
+                    <li>优化检修计划</li>
+                </ul>
+            </div>
+            <div>
+                <b>能效优化</b>
+                <ul class="mt-1 space-y-1 text-themed-secondary">
+                    <li>最优负荷分配</li>
+                    <li>热经济性分析</li>
+                    <li>碳排放控制</li>
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>`,
             'chapter2': `<h2>第2章: 强化学习世界观</h2>
 <p class="text-lg text-themed-secondary mb-6">本章将为您构建一个完整的强化学习(RL)知识框架。我们将从其核心数学描述——马尔可夫决策过程(MDP)出发，深入探讨价值与策略的核心概念，并引出如何用更强大的序列模型来理解复杂的工业过程状态。</p>
