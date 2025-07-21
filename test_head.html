@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能锅炉强化学习优化平台 (Pro v4)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <script>
+        // MathJax configuration for LaTeX rendering
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        /* CSS Variables for Theming */
+        :root {
+            --bg-primary: #f8fafc; /* Light background */
+            --bg-secondary: #ffffff; /* Card background */
+            --bg-muted: #f1f5f9; /* Muted background for sections/inputs */
+            --text-primary: #1e293b; /* Dark text */
+            --text-secondary: #475569; /* Muted text */
+            --border-color: #e2e8f0; /* Light border */
+            --accent-color: #4f46e5; /* Indigo accent */
+            --accent-text: #ffffff; /* White text on accent */
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+            --card-shadow-hover: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --glow-color: rgba(79, 70, 229, 0.2);
+        }
+        /* Dark Mode Overrides */
+        .dark {
+            --bg-primary: #0f172a; /* Dark background */
+            --bg-secondary: #1e293b; /* Darker card background */
+            --bg-muted: #334155; /* Dark muted background */
+            --text-primary: #f1f5f9; /* Light text */
+            --text-secondary: #94a3b8; /* Muted light text */
+            --border-color: #334155; /* Dark border */
+            --accent-color: #6366f1; /* Lighter indigo accent */
+            --accent-text: #ffffff; /* White text on accent */
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --card-shadow-hover: 0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.2);
+            --glow-color: rgba(99, 102, 241, 0.3);
+        }
+        /* Base HTML and Body Styles */
+        html { scroll-padding-top: 80px; }
+        body { 
+            font-family: 'Noto Sans SC', sans-serif; 
+            background-color: var(--bg-primary); 
+            color: var(--text-primary);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        /* Animations & Transitions */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        #content-container { animation: fadeIn 0.5s ease-out; }
+
+        /* Navigation Styles */
+        .dropdown-menu { display: none; animation: fadeIn 0.2s ease-out; }
+        .dropdown.open .dropdown-menu { display: block; }
+        .nav-link.active { font-weight: bold; color: var(--accent-color); background-color: rgba(79, 70, 229, 0.1); }
+        .nav-link-completed::after {
+            content: '✔'; color: #22c55e; font-weight: bold; margin-left: auto;
+        }
+        .nav-dropdown-btn.active {
+            background-color: var(--bg-muted); color: var(--accent-color);
+        }
+
+        /* Component Base Styles */
+        .card { 
+            background-color: var(--bg-secondary); border-radius: 0.75rem; 
+            box-shadow: var(--card-shadow); transition: all 0.3s ease-in-out; 
+            border: 1px solid var(--border-color); 
+        }
+        .card:hover { 
+            transform: translateY(-4px); box-shadow: var(--card-shadow-hover), 0 0 20px var(--glow-color); 
+        }
+        /* Heading Styles */
+        h2 { 
+            border-bottom: 2px solid var(--border-color); color: var(--text-primary); 
+            font-size: 2.25rem; font-weight: 900; padding-bottom: 0.5rem; margin-bottom: 1.5rem;
+        }
+        h3 { 
+            color: var(--text-primary); font-size: 1.5rem; font-weight: 700; 
+            margin-top: 2rem; margin-bottom: 1rem;
+        }
+        h4 {
+            color: var(--text-primary); font-size: 1.25rem; font-weight: 600; 
+            margin-top: 1.5rem; margin-bottom: 0.75rem;
+        }
+        /* Table Styles */
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid var(--border-color); padding: 0.75rem; text-align: left; }
+        th { background-color: var(--bg-muted); }
+        
+        /* Modal Specific Styles */
+        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); z-index: 50; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .modal-backdrop.visible { opacity: 1; pointer-events: auto; }
+        .modal-content { background-color: var(--bg-secondary); padding: 2rem; border-radius: 0.75rem; max-width: 90%; width: 420px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transform: scale(0.95); transition: transform 0.3s ease; }
+        .modal-backdrop.visible .modal-content { transform: scale(1); }
+
+        /* Boiler Visuals */
+        .flame-visual { position: absolute; bottom: 0; left: 50%; transform-origin: bottom center; width: 60%; margin-left: -30%; background: linear-gradient(to top, #ffde00, #ff8c00, rgba(255,140,0,0)); border-radius: 50% 50% 10% 10% / 100% 100% 20% 20%; transition: all 0.4s ease-in-out; animation: flicker-animation 0.3s infinite alternate; }
+        #boiler-visual-container, #boiler-visual-container-ch7 { box-shadow: inset 0 0 15px rgba(0,0,0,0.5); border: 3px solid #475569; }
+        @keyframes flicker-animation { 
+            0% { transform: scaleY(1) skewX(0deg); opacity: 0.9; filter: brightness(1); } 
+            50% { transform: scaleY(0.95) skewX(3deg); opacity: 1; filter: brightness(1.1); } 
+            100% { transform: scaleY(1.05) skewX(-3deg); opacity: 0.95; filter: brightness(1.2); } 
+        }
+        /* Deployment Steps */
+        .deployment-step { transition: all 0.3s ease; border-left-width: 4px; border-color: transparent; }
+        .deployment-step.active { border-color: var(--accent-color); background-color: rgba(79, 70, 229, 0.1); }
+        /* Code Blocks */
+        pre { background-color: var(--bg-muted); padding: 1rem; border-radius: 0.5rem; overflow-x: auto; font-family: 'Courier New', Courier, monospace; font-size: 0.9em; color: var(--text-primary); position: relative; }
+        .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; background-color: var(--border-color); color: var(--text-secondary); border: none; padding: 0.25rem 0.5rem; border-radius: 0.25rem; cursor: pointer; opacity: 0.5; transition: opacity 0.2s; }
+        pre:hover .copy-btn { opacity: 1; }
+        /* Preview Components (for CMDP Lab) */
+        .preview-component.hidden { display: none; }
+        .preview-component.reward-highlight { background-color: rgba(34, 197, 94, 0.1); border-left: 4px solid #22c55e; padding-left: 8px;}
+        .preview-component.cost-highlight { background-color: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding-left: 8px; }
+        /* Sliders */
+        .slider::-webkit-slider-thumb { background: var(--accent-color); box-shadow: 0 0 0 3px var(--bg-secondary), 0 0 0 4px var(--accent-color); }
+        /* Back to Top Button */
+        #back-to-top { transition: opacity 0.3s, transform 0.3s; }
+        /* Tab Buttons */
+        .tab-btn { transition: all 0.2s ease-in-out; }
+        .tab-btn.active { background-color: var(--accent-color); color: var(--accent-text); }
+
+        /* Landing page background animation */
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; }
+        }
+        .animated-gradient {
+            background: linear-gradient(270deg, #f3e8ff, #e0e7ff, #f0f9ff);
+            background-size: 600% 600%;
+            animation: gradient-animation 16s ease infinite;
+        }
+        .dark .animated-gradient {
+            background: linear-gradient(270deg, #1e1b4b, #1e293b, #0c4a6e);
+            background-size: 600% 600%;
+            animation: gradient-animation 16s ease infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Revamped Landing Page -->
+    <section id="home-landing" class="min-h-screen flex flex-col justify-center items-center p-4 animated-gradient">
+        <div class="max-w-4xl text-center">
+            <h1 class="text-5xl md:text-7xl font-extrabold text-indigo-700 dark:text-indigo-400 mb-6" style="animation: fadeInUp 0.8s ease-out both;">
+                智能锅炉强化学习优化平台
+            </h1>
+            <p class="text-lg text-slate-600 dark:text-slate-300 mb-10 max-w-3xl mx-auto" style="animation: fadeInUp 0.8s ease-out 0.2s both;">
+                融合深度强化学习与工业机理，驱动传统能源的智能化变革。我们提供从理论学习、仿真实验到部署策略的全链路解决方案。
+            </p>
+            <button id="start-experience-btn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-indigo-700 hover:shadow-xl transform hover:-translate-y-1 transition-all text-xl" style="animation: fadeInUp 0.8s ease-out 0.4s both;">
+                <i class="fa-solid fa-rocket mr-2"></i>开启学习之旅
+            </button>
+        </div>
+        <div class="max-w-6xl mx-auto mt-20 grid md:grid-cols-3 gap-8 px-4" style="animation: fadeInUp 0.8s ease-out 0.6s both;">
+            <div class="card p-6 text-left hover:-translate-y-2">
+                <i class="fa-solid fa-book-open text-3xl text-indigo-500 mb-4"></i>
+                <h3 class="text-xl font-bold mt-0 mb-2">系统化理论</h3>
+                <p class="text-themed-secondary text-sm">从工业控制基础到前沿RL算法，层层递进，构建坚实的理论基础。</p>
+            </div>
+            <div class="card p-6 text-left hover:-translate-y-2">
+                <i class="fa-solid fa-flask-vial text-3xl text-indigo-500 mb-4"></i>
+                <h3 class="text-xl font-bold mt-0 mb-2">交互式实验</h3>
+                <p class="text-themed-secondary text-sm">在多个可视化沙箱中，亲手调节参数，直观感受算法与控制核心。</p>
+            </div>
+            <div class="card p-6 text-left hover:-translate-y-2">
+                <i class="fa-solid fa-cogs text-3xl text-indigo-500 mb-4"></i>
+                <h3 class="text-xl font-bold mt-0 mb-2">工程化实践</h3>
+                <p class="text-themed-secondary text-sm">学习从数字孪生到三阶段安全部署的完整工业落地流程。</p>
+            </div>
+        </div>
+        <footer class="text-center text-slate-500 dark:text-slate-400 text-sm py-6 w-full absolute bottom-0 border-t border-slate-200 dark:border-slate-700">
+            &copy; 2025 智能锅炉优化平台 | 技术支持：HGC团队 | 
+            <i class="fa-solid fa-eye"></i> 访问量: <span id="visitor-count">加载中...</span>
+        </footer>
+    </section>
+
+    <!-- Main App Interface -->
+    <div id="main-app" class="hidden">
+        <header class="bg-themed-secondary/80 dark:bg-themed-secondary/80 backdrop-blur-sm sticky top-0 z-40 w-full border-b border-themed">
+            <div class="container mx-auto flex items-center justify-between p-4">
+                <div class="flex items-center gap-3 cursor-pointer" id="main-logo">
+                    <img src="https://placehold.co/64x64/ffffff/4f46e5?text=SEU" alt="东南大学logo" class="h-10 w-10 rounded-full bg-white p-0.5" onerror="this.onerror=null;this.src='https://placehold.co/64x64/ffffff/000000?text=SEU';" />
+                    <h1 class="text-xl font-bold text-indigo-500 dark:text-indigo-400 hidden sm:block">RL锅炉优化平台</h1>
+                </div>
+                <div class="relative hidden md:block" id="search-container">
