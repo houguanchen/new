@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能锅炉强化学习优化平台 (Pro v4)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <script>
+        // MathJax configuration for LaTeX rendering
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        /* 基础样式 */
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-muted: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --border-color: #e2e8f0;
+            --accent-color: #4f46e5;
+            --accent-text: #ffffff;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+        }
+        
+        .dark {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-muted: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --accent-color: #6366f1;
+        }
+        
+        body { 
+            font-family: 'Noto Sans SC', sans-serif; 
+            background-color: var(--bg-primary); 
+            color: var(--text-primary);
+        }
+        
+        .card { 
+            background-color: var(--bg-secondary); 
+            border-radius: 0.75rem; 
+            box-shadow: var(--card-shadow); 
+            border: 1px solid var(--border-color); 
+        }
+        
+        @keyframes fadeInUp { 
+            from { opacity: 0; transform: translateY(20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; } 
+            50% { background-position: 100% 50%; } 
+            100% { background-position: 0% 50%; }
+        }
+        
+        .animated-gradient {
+            background: linear-gradient(270deg, #f3e8ff, #e0e7ff, #f0f9ff);
+            background-size: 600% 600%;
+            animation: gradient-animation 16s ease infinite;
+        }
+        
+        .dark .animated-gradient {
+            background: linear-gradient(270deg, #1e1b4b, #1e293b, #0c4a6e);
+            background-size: 600% 600%;
+            animation: gradient-animation 16s ease infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Landing Page -->
+    <section id="home-landing" class="min-h-screen flex flex-col justify-center items-center p-4 animated-gradient">
+        <div class="max-w-4xl text-center">
+            <h1 class="text-5xl md:text-7xl font-extrabold text-indigo-700 dark:text-indigo-400 mb-6" style="animation: fadeInUp 0.8s ease-out both;">
+                智能锅炉强化学习优化平台
+            </h1>
+            <p class="text-lg text-slate-600 dark:text-slate-300 mb-10 max-w-3xl mx-auto" style="animation: fadeInUp 0.8s ease-out 0.2s both;">
+                融合深度强化学习与工业机理，驱动传统能源的智能化变革。我们提供从理论学习、仿真实验到部署策略的全链路解决方案。
+            </p>
+            <button id="start-experience-btn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-indigo-700 hover:shadow-xl transform hover:-translate-y-1 transition-all text-xl" style="animation: fadeInUp 0.8s ease-out 0.4s both;">
+                <i class="fa-solid fa-rocket mr-2"></i>开启学习之旅
+            </button>
+        </div>
+    </section>
+
+    <!-- Main App Interface -->
+    <div id="main-app" class="hidden">
+        <header class="bg-white dark:bg-gray-800 sticky top-0 z-40 w-full border-b border-gray-200 dark:border-gray-700">
+            <div class="container mx-auto flex items-center justify-between p-4">
+                <div class="flex items-center gap-3 cursor-pointer" id="main-logo">
+                    <img src="https://placehold.co/64x64/ffffff/4f46e5?text=SEU" alt="东南大学logo" class="h-10 w-10 rounded-full bg-white p-0.5" />
+                    <h1 class="text-xl font-bold text-indigo-500 dark:text-indigo-400 hidden sm:block">RL锅炉优化平台</h1>
+                </div>
+                <nav class="hidden md:flex items-center gap-4">
+                    <a href="#chapter1" class="nav-link px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700">第1章: 锅炉原理</a>
+                    <a href="#chapter2" class="nav-link px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700">第2章: RL基础</a>
+                    <a href="#chapter3" class="nav-link px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700">第3章: 深度学习</a>
+                </nav>
+            </div>
+        </header>
+        
+        <main class="container mx-auto p-4 md:p-8">
+            <div id="content-container">
+                <div class="card p-8">
+                    <h2 class="text-3xl font-bold mb-6">欢迎来到智能锅炉优化平台</h2>
+                    <p class="text-lg text-gray-600 dark:text-gray-300 mb-4">
+                        您已经成功进入学习平台！这里将为您提供从基础理论到实际应用的完整学习体验。
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                        <div class="card p-6">
+                            <h3 class="text-xl font-bold mb-3">锅炉原理与控制</h3>
+                            <p class="text-gray-600 dark:text-gray-300 text-sm">深入了解锅炉的物理原理、燃烧基础以及经典控制方法。</p>
+                        </div>
+                        <div class="card p-6">
+                            <h3 class="text-xl font-bold mb-3">强化学习基础</h3>
+                            <p class="text-gray-600 dark:text-gray-300 text-sm">从马尔可夫决策过程开始，构建完整的RL知识框架。</p>
+                        </div>
+                        <div class="card p-6">
+                            <h3 class="text-xl font-bold mb-3">深度学习集成</h3>
+                            <p class="text-gray-600 dark:text-gray-300 text-sm">学习如何将深度神经网络与强化学习相结合。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        console.log('Script loading...');
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM Content Loaded');
+            
+            const homeLanding = document.getElementById('home-landing');
+            const mainApp = document.getElementById('main-app');
+            const startBtn = document.getElementById('start-experience-btn');
+            const mainLogo = document.getElementById('main-logo');
+            
+            console.log('Elements found:', {
+                homeLanding: !!homeLanding,
+                mainApp: !!mainApp,
+                startBtn: !!startBtn,
+                mainLogo: !!mainLogo
+            });
+
+            if (startBtn) {
+                startBtn.addEventListener('click', () => {
+                    console.log('Start button clicked!');
+                    homeLanding.classList.add('hidden');
+                    mainApp.classList.remove('hidden');
+                });
+            } else {
+                console.error('Start button not found!');
+            }
+
+            if (mainLogo) {
+                mainLogo.addEventListener('click', () => {
+                    console.log('Logo clicked!');
+                    mainApp.classList.add('hidden');
+                    homeLanding.classList.remove('hidden');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

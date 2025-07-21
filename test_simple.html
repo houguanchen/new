@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试页面</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="home-landing" class="min-h-screen flex items-center justify-center bg-gray-100">
+        <div class="text-center">
+            <h1 class="text-4xl font-bold mb-6">测试页面</h1>
+            <button id="start-experience-btn" class="bg-blue-600 text-white px-6 py-3 rounded-lg">
+                开始测试
+            </button>
+        </div>
+    </div>
+    
+    <div id="main-app" class="hidden min-h-screen flex items-center justify-center bg-green-100">
+        <div class="text-center">
+            <h1 class="text-4xl font-bold">成功进入！</h1>
+            <p class="mt-4">如果你看到这个页面，说明基本功能正常</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const startBtn = document.getElementById('start-experience-btn');
+            const homeLanding = document.getElementById('home-landing');
+            const mainApp = document.getElementById('main-app');
+            
+            console.log('DOM loaded, elements found:', {
+                startBtn: !!startBtn,
+                homeLanding: !!homeLanding,
+                mainApp: !!mainApp
+            });
+            
+            if (startBtn) {
+                startBtn.addEventListener('click', () => {
+                    console.log('Button clicked!');
+                    homeLanding.classList.add('hidden');
+                    mainApp.classList.remove('hidden');
+                });
+            } else {
+                console.error('Start button not found!');
+            }
+        });
+    </script>
+</body>
+</html>
