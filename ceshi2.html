@@ -647,26 +647,103 @@
             'chapter1': `<h2>第1章: 锅炉原理与控制</h2>
 <p class="text-lg text-themed-secondary mb-6">在应用强化学习之前，我们必须首先成为半个“锅炉专家”。本章将深入探讨锅炉的物理原理、燃烧基础以及工业界广泛使用的经典控制方法，为后续的RL优化建立坚实的领域知识基础。</p>
 <div class="card p-6 mb-6">
-    <h3>1.1 燃烧、传热与热力循环</h3>
-    <p class="text-themed-secondary mb-4">锅炉的核心使命是高效、清洁地将燃料的化学能转化为蒸汽的热能。</p>
+    <h3>1.1 锅炉的基本工作原理与分类</h3>
+    <p class="text-themed-secondary mb-4">锅炉是工业动力系统的心脏，其核心使命是高效、清洁地将燃料的化学能转化为蒸汽的热能。根据用途和结构，锅炉可分为多种类型。</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <h4 class="font-bold text-blue-700 dark:text-blue-300 mb-2">按用途分类</h4>
+            <ul class="text-sm space-y-1">
+                <li><b>电站锅炉</b>：发电厂主力设备，容量大(300-1000MW)</li>
+                <li><b>工业锅炉</b>：为工厂提供工艺蒸汽</li>
+                <li><b>船舶锅炉</b>：为船舶动力系统供汽</li>
+            </ul>
+        </div>
+        <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+            <h4 class="font-bold text-green-700 dark:text-green-300 mb-2">按结构分类</h4>
+            <ul class="text-sm space-y-1">
+                <li><b>火管锅炉</b>：烟气在管内流动，水在管外</li>
+                <li><b>水管锅炉</b>：水在管内流动，烟气在管外，现代主流</li>
+                <li><b>直流锅炉</b>：水从给水泵直接变成过热蒸汽</li>
+            </ul>
+        </div>
+    </div>
+
+    <h3>1.2 燃烧理论与化学基础</h3>
+    <p class="text-themed-secondary mb-4">燃烧是燃料与氧化剂发生的快速化学反应，伴随大量热量释放。理解燃烧的化学机理是优化锅炉运行的基础。</p>
+    
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
             <h4>燃烧基础：化学反应的核心</h4>
             <p class="text-themed-secondary">燃烧需要燃料、氧化剂（空气）和点火能量。在锅炉中，我们精确控制煤粉与空气的混合比例，即<b>空燃比</b>。理想的化学计量比能完全燃烧，但实际中需要送入<b>过量空气</b>以确保燃料燃尽，但这又会增加NOx生成和排烟热损失。</p>
+            
+            <div class="mt-4 p-3 bg-themed-muted rounded">
+                <h5 class="font-bold mb-2">主要燃烧反应</h5>
+                <div class="text-sm space-y-1">
+                    <div>碳燃烧：$$C + O_2 \\rightarrow CO_2 + 394 \\text{ kJ/mol}$$</div>
+                    <div>氢燃烧：$$2H_2 + O_2 \\rightarrow 2H_2O + 484 \\text{ kJ/mol}$$</div>
+                </div>
+            </div>
         </div>
         <div>
             <h4>热量传递：从火焰到水</h4>
             <p class="text-themed-secondary">热量通过三种方式传递给水冷壁、过热器等受热面：<b>辐射</b>（火焰的主要方式）、<b>对流</b>（高温烟气）和<b>传导</b>（通过管壁）。火焰中心的位置直接影响各受热面的吸热比例，是控制蒸汽温度的关键。</p>
+            
+            <div class="mt-4 p-3 bg-themed-muted rounded">
+                <h5 class="font-bold mb-2">传热机制</h5>
+                <ul class="text-sm space-y-1">
+                    <li><b>辐射传热</b>：高温火焰向水冷壁的直接传热</li>
+                    <li><b>对流传热</b>：烟气流过受热面的传热</li>
+                    <li><b>传导传热</b>：通过管壁的热传导</li>
+                </ul>
+            </div>
         </div>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center mt-6">
         <div id="boiler-diagram-container" class="p-2 bg-themed-secondary rounded-lg shadow-inner"></div>
         <div id="rankine-diagram-container" class="p-2 bg-themed-secondary rounded-lg shadow-inner"></div>
     </div>
+    
+    <h3 class="mt-6">1.3 锅炉热力循环与热平衡</h3>
+    <p class="text-themed-secondary mb-4">锅炉是Rankine循环的核心组件，负责将给水加热至过热蒸汽。理解热力循环对优化锅炉运行至关重要。</p>
+    
+    <div class="p-4 bg-themed-muted rounded-lg">
+        <h5 class="font-bold mb-2">热平衡分析</h5>
+        <div class="text-center p-2 bg-white dark:bg-gray-800 rounded mb-4">
+            $$Q_{输入} = Q_{有效利用} + \\sum Q_{损失}$$
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h6 class="font-bold text-green-600 dark:text-green-400 mb-2">热量输入</h6>
+                <ul class="text-sm space-y-1">
+                    <li>燃料低位发热量</li>
+                    <li>燃料物理显热</li>
+                    <li>空气物理显热</li>
+                </ul>
+            </div>
+            <div>
+                <h6 class="font-bold text-red-600 dark:text-red-400 mb-2">热量损失</h6>
+                <ul class="text-sm space-y-1">
+                    <li>排烟热损失(最大，35-45%)</li>
+                    <li>化学不完全燃烧损失</li>
+                    <li>机械不完全燃烧损失</li>
+                    <li>散热损失</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="mt-4 p-3 bg-blue-100 dark:bg-blue-900/30 rounded">
+            <h6 class="font-bold text-blue-700 dark:text-blue-300 mb-1">锅炉效率计算</h6>
+            <div class="text-center">
+                $$\\eta = \\frac{Q_{有效利用}}{Q_{输入}} \\times 100\\% = (100 - \\sum q_i)\\%$$
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="card p-6 mb-6">
-    <h3>1.2 系统动态与建模</h3>
+    <h3>1.4 系统动态与建模</h3>
     <p class="text-themed-secondary mb-4">工业过程不是瞬时响应的。理解其动态特性是有效控制的前提。锅炉这类复杂系统的动态行为，通常可以被简化的一阶加纯迟滞(FOPDT)模型来近似描述。</p>
     <div class="p-4 my-2 bg-themed-muted rounded text-center text-md">
         $$G(s) = \frac{K_p e^{-\theta_p s}}{\tau_p s + 1}$$
@@ -703,7 +780,7 @@
 </div>
 
 <div class="card p-6 mb-6">
-    <h3>1.3 工业基石：PID控制回路</h3>
+    <h3>1.5 工业基石：PID控制回路</h3>
     <p class="text-themed-secondary mb-4">在90%的工业场景中，PID（比例-积分-微分）控制器是维持系统稳定的中流砥柱。理解PID的原理和局限性，是理解为什么需要RL的关键。</p>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
