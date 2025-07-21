@@ -1,0 +1,2736 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能锅炉强化学习优化平台 (Pro v4)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <script>
+        // MathJax configuration for LaTeX rendering
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        /* CSS Variables for Theming */
+        :root {
+            --bg-primary: #f8fafc; /* Light background */
+            --bg-secondary: #ffffff; /* Card background */
+            --bg-muted: #f1f5f9; /* Muted background for sections/inputs */
+            --text-primary: #1e293b; /* Dark text */
+            --text-secondary: #475569; /* Muted text */
+            --border-color: #e2e8f0; /* Light border */
+            --accent-color: #4f46e5; /* Indigo accent */
+            --accent-text: #ffffff; /* White text on accent */
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+            --card-shadow-hover: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --glow-color: rgba(79, 70, 229, 0.2);
+        }
+        /* Dark Mode Overrides */
+        .dark {
+            --bg-primary: #0f172a; /* Dark background */
+            --bg-secondary: #1e293b; /* Darker card background */
+            --bg-muted: #334155; /* Dark muted background */
+            --text-primary: #f1f5f9; /* Light text */
+            --text-secondary: #94a3b8; /* Muted light text */
+            --border-color: #334155; /* Dark border */
+            --accent-color: #6366f1; /* Lighter indigo accent */
+            --accent-text: #ffffff; /* White text on accent */
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --card-shadow-hover: 0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.2);
+            --glow-color: rgba(99, 102, 241, 0.3);
+        }
+        /* Base HTML and Body Styles */
+        html { scroll-padding-top: 80px; }
+        body { 
+            font-family: 'Noto Sans SC', sans-serif; 
+            background-color: var(--bg-primary); 
+            color: var(--text-primary);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        /* Animations & Transitions */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        #content-container { animation: fadeIn 0.5s ease-out; }
+
+        /* Navigation Styles */
+        .dropdown-menu { display: none; animation: fadeIn 0.2s ease-out; }
+        .dropdown.open .dropdown-menu { display: block; }
+        .nav-link.active { font-weight: bold; color: var(--accent-color); background-color: rgba(79, 70, 229, 0.1); }
+        .nav-link-completed::after {
+            content: '✔'; color: #22c55e; font-weight: bold; margin-left: auto;
+        }
+        .nav-dropdown-btn.active {
+            background-color: var(--bg-muted); color: var(--accent-color);
+        }
+
+        /* Component Base Styles */
+        .card { 
+            background-color: var(--bg-secondary); border-radius: 0.75rem; 
+            box-shadow: var(--card-shadow); transition: all 0.3s ease-in-out; 
+            border: 1px solid var(--border-color); 
+        }
+        .card:hover { 
+            transform: translateY(-4px); box-shadow: var(--card-shadow-hover), 0 0 20px var(--glow-color); 
+        }
+        /* Heading Styles */
+        h2 { 
+            border-bottom: 2px solid var(--border-color); color: var(--text-primary); 
+            font-size: 2.25rem; font-weight: 900; padding-bottom: 0.5rem; margin-bottom: 1.5rem;
+        }
+        h3 { 
+            color: var(--text-primary); font-size: 1.5rem; font-weight: 700; 
+            margin-top: 2rem; margin-bottom: 1rem;
+        }
+        h4 {
+            color: var(--text-primary); font-size: 1.25rem; font-weight: 600; 
+            margin-top: 1.5rem; margin-bottom: 0.75rem;
+        }
+        /* Table Styles */
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid var(--border-color); padding: 0.75rem; text-align: left; }
+        th { background-color: var(--bg-muted); }
+        
+        /* Modal Specific Styles */
+        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); z-index: 50; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .modal-backdrop.visible { opacity: 1; pointer-events: auto; }
+        .modal-content { background-color: var(--bg-secondary); padding: 2rem; border-radius: 0.75rem; max-width: 90%; width: 420px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transform: scale(0.95); transition: transform 0.3s ease; }
+        .modal-backdrop.visible .modal-content { transform: scale(1); }
+
+        /* Boiler Visuals */
+        .flame-visual { position: absolute; bottom: 0; left: 50%; transform-origin: bottom center; width: 60%; margin-left: -30%; background: linear-gradient(to top, #ffde00, #ff8c00, rgba(255,140,0,0)); border-radius: 50% 50% 10% 10% / 100% 100% 20% 20%; transition: all 0.4s ease-in-out; animation: flicker-animation 0.3s infinite alternate; }
+        #boiler-visual-container, #boiler-visual-container-ch7 { box-shadow: inset 0 0 15px rgba(0,0,0,0.5); border: 3px solid #475569; }
+        @keyframes flicker-animation { 
+            0% { transform: scaleY(1) skewX(0deg); opacity: 0.9; filter: brightness(1); } 
+            50% { transform: scaleY(0.95) skewX(3deg); opacity: 1; filter: brightness(1.1); } 
+            100% { transform: scaleY(1.05) skewX(-3deg); opacity: 0.95; filter: brightness(1.2); } 
+        }
+        /* Deployment Steps */
+        .deployment-step { transition: all 0.3s ease; border-left-width: 4px; border-color: transparent; }
+        .deployment-step.active { border-color: var(--accent-color); background-color: rgba(79, 70, 229, 0.1); }
+        /* Code Blocks */
+        pre { background-color: var(--bg-muted); padding: 1rem; border-radius: 0.5rem; overflow-x: auto; font-family: 'Courier New', Courier, monospace; font-size: 0.9em; color: var(--text-primary); position: relative; }
+        .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; background-color: var(--border-color); color: var(--text-secondary); border: none; padding: 0.25rem 0.5rem; border-radius: 0.25rem; cursor: pointer; opacity: 0.5; transition: opacity 0.2s; }
+        pre:hover .copy-btn { opacity: 1; }
+        /* Preview Components (for CMDP Lab) */
+        .preview-component.hidden { display: none; }
+        .preview-component.reward-highlight { background-color: rgba(34, 197, 94, 0.1); border-left: 4px solid #22c55e; padding-left: 8px;}
+        .preview-component.cost-highlight { background-color: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding-left: 8px; }
+        /* Sliders */
+        .slider::-webkit-slider-thumb { background: var(--accent-color); box-shadow: 0 0 0 3px var(--bg-secondary), 0 0 0 4px var(--accent-color); }
+        /* Back to Top Button */
+        #back-to-top { transition: opacity 0.3s, transform 0.3s; }
+        /* Tab Buttons */
+        .tab-btn { transition: all 0.2s ease-in-out; }
+        .tab-btn.active { background-color: var(--accent-color); color: var(--accent-text); }
+
+        /* Landing page background animation */
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; }
+        }
+        .animated-gradient {
+            background: linear-gradient(270deg, #f3e8ff, #e0e7ff, #f0f9ff);
+            background-size: 600% 600%;
+            animation: gradient-animation 16s ease infinite;
+        }
+        .dark .animated-gradient {
+            background: linear-gradient(270deg, #1e1b4b, #1e293b, #0c4a6e);
+            background-size: 600% 600%;
+            animation: gradient-animation 16s ease infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Revamped Landing Page -->
+    <section id="home-landing" class="min-h-screen flex flex-col justify-center items-center p-4 animated-gradient">
+        <div class="max-w-4xl text-center">
+            <h1 class="text-5xl md:text-7xl font-extrabold text-indigo-700 dark:text-indigo-400 mb-6" style="animation: fadeInUp 0.8s ease-out both;">
+                智能锅炉强化学习优化平台
+            </h1>
+            <p class="text-lg text-slate-600 dark:text-slate-300 mb-10 max-w-3xl mx-auto" style="animation: fadeInUp 0.8s ease-out 0.2s both;">
+                融合深度强化学习与工业机理，驱动传统能源的智能化变革。我们提供从理论学习、仿真实验到部署策略的全链路解决方案。
+            </p>
+            <button id="start-experience-btn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-indigo-700 hover:shadow-xl transform hover:-translate-y-1 transition-all text-xl" style="animation: fadeInUp 0.8s ease-out 0.4s both;">
+                <i class="fa-solid fa-rocket mr-2"></i>开启学习之旅
+            </button>
+        </div>
+        <div class="max-w-6xl mx-auto mt-20 grid md:grid-cols-3 gap-8 px-4" style="animation: fadeInUp 0.8s ease-out 0.6s both;">
+            <div class="card p-6 text-left hover:-translate-y-2">
+                <i class="fa-solid fa-book-open text-3xl text-indigo-500 mb-4"></i>
+                <h3 class="text-xl font-bold mt-0 mb-2">系统化理论</h3>
+                <p class="text-themed-secondary text-sm">从工业控制基础到前沿RL算法，层层递进，构建坚实的理论基础。</p>
+            </div>
+            <div class="card p-6 text-left hover:-translate-y-2">
+                <i class="fa-solid fa-flask-vial text-3xl text-indigo-500 mb-4"></i>
+                <h3 class="text-xl font-bold mt-0 mb-2">交互式实验</h3>
+                <p class="text-themed-secondary text-sm">在多个可视化沙箱中，亲手调节参数，直观感受算法与控制核心。</p>
+            </div>
+            <div class="card p-6 text-left hover:-translate-y-2">
+                <i class="fa-solid fa-cogs text-3xl text-indigo-500 mb-4"></i>
+                <h3 class="text-xl font-bold mt-0 mb-2">工程化实践</h3>
+                <p class="text-themed-secondary text-sm">学习从数字孪生到三阶段安全部署的完整工业落地流程。</p>
+            </div>
+        </div>
+        <footer class="text-center text-slate-500 dark:text-slate-400 text-sm py-6 w-full absolute bottom-0 border-t border-slate-200 dark:border-slate-700">
+            &copy; 2025 智能锅炉优化平台 | 技术支持：HGC团队 | 
+            <i class="fa-solid fa-eye"></i> 访问量: <span id="visitor-count">加载中...</span>
+        </footer>
+    </section>
+
+    <!-- Main App Interface -->
+    <div id="main-app" class="hidden">
+        <header class="bg-themed-secondary/80 dark:bg-themed-secondary/80 backdrop-blur-sm sticky top-0 z-40 w-full border-b border-themed">
+            <div class="container mx-auto flex items-center justify-between p-4">
+                <div class="flex items-center gap-3 cursor-pointer" id="main-logo">
+                    <img src="https://placehold.co/64x64/ffffff/4f46e5?text=SEU" alt="东南大学logo" class="h-10 w-10 rounded-full bg-white p-0.5" onerror="this.onerror=null;this.src='https://placehold.co/64x64/ffffff/000000?text=SEU';" />
+                    <h1 class="text-xl font-bold text-indigo-500 dark:text-indigo-400 hidden sm:block">RL锅炉优化平台</h1>
+                </div>
+                <div class="relative hidden md:block" id="search-container">
+                    <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-themed-secondary"></i>
+                    <input type="text" id="search-input" placeholder="搜索章节..." class="w-64 bg-themed-muted border border-themed rounded-lg py-1.5 pl-9 pr-4 focus:outline-none focus:ring-2 focus:ring-accent-color">
+                    <div id="search-results" class="hidden absolute top-full left-0 mt-2 w-full bg-themed-secondary rounded-lg shadow-xl border border-themed p-2 z-50"></div>
+                </div>
+                <nav class="hidden md:flex items-center gap-2" id="desktop-nav"></nav>
+                <div class="flex items-center gap-4">
+                    <div id="auth-section"></div>
+                    <button id="theme-toggle-btn" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-themed-muted transition-colors">
+                        <i id="theme-icon" class="fa-solid fa-moon"></i>
+                    </button>
+                    <button id="mobile-menu-btn" class="md:hidden w-10 h-10 flex items-center justify-center rounded-lg hover:bg-themed-muted transition-colors">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="mobile-menu" class="hidden md:hidden border-t border-themed p-4"></div> <!-- Added mobile menu div -->
+            <div id="global-progress-bar-container" class="w-full bg-themed-muted h-2.5">
+                <div id="global-progress-bar" class="bg-green-500 h-2.5 transition-all duration-500" style="width: 0%"></div>
+            </div>
+        </header>
+        
+        <main class="container mx-auto p-4 md:p-8">
+            <div id="breadcrumb" class="mb-4 text-sm text-themed-secondary"></div>
+            <div id="content-container"></div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="auth-modal" class="modal-backdrop"></div>
+    
+    <!-- Back to Top Button -->
+    <button id="back-to-top" class="fixed bottom-5 right-5 w-12 h-12 rounded-full bg-indigo-600 text-white shadow-lg flex items-center justify-center opacity-0 transform translate-y-4 pointer-events-none">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, runTransaction, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- App State ---
+        const state = { currentUser: null, userProgress: [], currentView: '', activeAnimationFrames: {} };
+
+        // --- Firebase Configuration and Initialization ---
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'rl-boiler-app-pro';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        let app, auth, db;
+
+        if (firebaseConfig) {
+            try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                setupAuthListener();
+                incrementAndShowVisitorCount();
+            } catch (e) { console.error("Firebase initialization failed:", e); }
+        } else {
+            console.warn("Firebase config not found. Some features like user progress and visitor count will be disabled.");
+        }
+
+        // --- Authentication & User Progress ---
+        function setupAuthListener() {
+            onAuthStateChanged(auth, async user => {
+                if (user) {
+                    state.currentUser = { uid: user.uid, email: user.email };
+                    await fetchUserProgress(user.uid);
+                } else {
+                    state.currentUser = null;
+                    state.userProgress = [];
+                }
+                renderAuthSection();
+                renderNav();
+                updateGlobalProgressBar();
+            });
+        }
+        
+        async function fetchUserProgress(userId) {
+            if (!db) return;
+            const progressRef = doc(db, `artifacts/${appId}/users/${userId}/progress`, 'main');
+            const docSnap = await getDoc(progressRef);
+            state.userProgress = docSnap.exists() ? docSnap.data().completedChapters || [] : [];
+        }
+
+        async function markChapterAsCompleted(chapterId) {
+            if (!state.currentUser || state.userProgress.includes(chapterId) || !db) return;
+            if (chapterId.startsWith('quiz')) return; // Do not mark quizzes as completed
+            state.userProgress.push(chapterId);
+            renderNav();
+            updateGlobalProgressBar();
+            const progressRef = doc(db, `artifacts/${appId}/users/${state.currentUser.uid}/progress`, 'main');
+            try {
+                await setDoc(progressRef, { completedChapters: arrayUnion(chapterId) }, { merge: true });
+            } catch (error) { console.error("Error updating progress:", error); }
+        }
+
+        // --- Visitor Counter ---
+        async function incrementAndShowVisitorCount() {
+            const visitorCountEl = document.getElementById('visitor-count');
+            if (!db) {
+                if(visitorCountEl) visitorCountEl.textContent = 'N/A';
+                return;
+            }
+            const counterRef = doc(db, `artifacts/${appId}/public/data/analytics`, 'page_views');
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const counterDoc = await transaction.get(counterRef);
+                    const newCount = (counterDoc.data()?.count || 0) + 1;
+                    transaction.set(counterRef, { count: newCount });
+                });
+                const finalDoc = await getDoc(counterRef);
+                if (finalDoc.exists() && visitorCountEl) visitorCountEl.textContent = finalDoc.data().count;
+            } catch (e) { 
+                console.error("Failed to update visitor count:", e); 
+                if(visitorCountEl) visitorCountEl.textContent = 'Error';
+            }
+        }
+
+        // --- UI Element Selectors ---
+        const contentContainer = document.getElementById('content-container');
+        const desktopNav = document.getElementById('desktop-nav');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const authSection = document.getElementById('auth-section');
+        const authModalContainer = document.getElementById('auth-modal');
+        const backToTopBtn = document.getElementById('back-to-top');
+        const breadcrumb = document.getElementById('breadcrumb');
+        const searchInput = document.getElementById('search-input');
+        const searchResults = document.getElementById('search-results');
+        const globalProgressBar = document.getElementById('global-progress-bar');
+
+        // --- Navigation Structure ---
+        const navStructure = [
+            { title: '基础篇', chapters: ['chapter1', 'chapter2'] },
+            { title: '核心算法', chapters: ['chapter3', 'chapter4', 'chapter5', 'chapter6', 'quiz1'] },
+            { title: '实践篇', chapters: ['chapter7', 'chapter8', 'chapter9'] },
+            { title: '部署与未来', chapters: ['chapter10', 'chapter11', 'chapter12'] },
+            { title: '关于', chapters: ['glossary', 'team', 'resources'] }
+        ];
+        const chapterDetails = {
+            'chapter1': '锅炉原理与控制', 'chapter2': '强化学习世界观', 'chapter3': '深度学习与RL结合',
+            'chapter4': '演员-评论家架构', 'chapter5': 'PPO算法详解', 'chapter6': 'SAC算法详解',
+            'quiz1': '阶段小测 (核心算法)',
+            'chapter7': 'CMDP构建实验室', 'chapter8': '构建数字孪生', 'chapter9': '训练实验与调试',
+            'chapter10': '三阶段安全部署', 'chapter11': '总结与未来', 'chapter12': '高级主题-离线RL',
+            'glossary': '关键术语表',
+            'team': '团队介绍', 'resources': '关键资源'
+        };
+
+        const totalChaptersForProgress = navStructure.flatMap(g => g.chapters).filter(id => !id.startsWith('quiz')).length;
+
+        // --- UI Rendering Functions ---
+        function renderNav() {
+            const navHtml = navStructure.map(group => `
+                <div class="dropdown relative">
+                    <button class="nav-dropdown-btn p-2 rounded-lg hover:bg-themed-muted transition-colors flex items-center gap-1" data-group="${group.title}">${group.title} <i class="fa-solid fa-chevron-down text-xs"></i></button>
+                    <div class="dropdown-menu hidden absolute top-full left-0 mt-2 w-64 bg-themed-secondary rounded-lg shadow-xl border border-themed p-2 z-50">
+                        ${group.chapters.map(id => `<a href="#${id}" data-view="${id}" class="nav-link flex items-center p-2 rounded-md text-sm ${state.userProgress.includes(id) ? 'nav-link-completed' : ''}">${chapterDetails[id]}</a>`).join('')}
+                    </div>
+                </div>`).join('');
+            desktopNav.innerHTML = navHtml;
+            mobileMenu.innerHTML = navStructure.flatMap(group => 
+                [`<div class="px-2 py-1 text-sm font-semibold text-themed-secondary">${group.title}</div>`]
+                .concat(group.chapters.map(id => `<a href="#${id}" data-view="${id}" class="nav-link block p-2 rounded-md text-sm ${state.userProgress.includes(id) ? 'nav-link-completed' : ''}">${chapterDetails[id]}</a>`))
+            ).join('');
+            updateNavActiveState();
+        }
+
+        function renderAuthSection() {
+            authSection.innerHTML = state.currentUser ? `
+                <div class="dropdown relative">
+                    <button class="nav-dropdown-btn w-10 h-10 flex items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 font-semibold">
+                        ${state.currentUser.email ? state.currentUser.email[0].toUpperCase() : 'A'}
+                    </button>
+                    <div class="dropdown-menu hidden absolute top-full right-0 mt-2 w-48 bg-themed-secondary rounded-lg shadow-xl border border-themed p-2 z-50">
+                        <div class="px-2 py-1 text-xs text-themed-secondary truncate">${state.currentUser.email || '匿名用户'}</div>
+                        <div class="my-1 border-t border-themed"></div>
+                        <button id="logout-btn" class="w-full text-left p-2 rounded-md text-sm hover:bg-themed-muted">退出登录</button>
+                    </div>
+                </div>` : `
+                <div class="flex items-center gap-2">
+                    <button id="login-btn" class="px-3 py-1.5 text-sm rounded-lg hover:bg-themed-muted transition-colors">登录</button>
+                    <button id="register-btn" class="px-3 py-1.5 text-sm rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">注册</button>
+                </div>`;
+        }
+        
+        function showAuthModal(isLogin = true) {
+            authModalContainer.innerHTML = `
+                <div class="modal-content">
+                    <h3 class="text-xl font-bold text-indigo-500 dark:text-indigo-400 mb-2">${isLogin ? '登录平台' : '创建账户'}</h3>
+                    <p class="text-themed-secondary mb-6 text-sm">开始您的智能优化学习之旅。</p>
+                    <div id="auth-error" class="hidden p-3 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800"></div>
+                    <form id="auth-form">
+                        <div class="space-y-4">
+                            <div><label for="auth-email" class="block text-sm font-medium text-themed-secondary">邮箱</label><input type="email" id="auth-email" required class="mt-1 block w-full bg-themed-muted border border-themed rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></div>
+                            <div><label for="auth-password" class="block text-sm font-medium text-themed-secondary">密码</label><input type="password" id="auth-password" required class="mt-1 block w-full bg-themed-muted border border-themed rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></div>
+                        </div>
+                        <div class="mt-6 flex items-center justify-between">
+                            <button type="button" id="auth-switch-btn" class="text-sm text-indigo-600 hover:underline">${isLogin ? '没有账户？去注册' : '已有账户？去登录'}</button>
+                            <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">${isLogin ? '登录' : '注册'}</button>
+                        </div>
+                    </form>
+                </div>`;
+            authModalContainer.classList.add('visible');
+        }
+
+        function updateGlobalProgressBar() {
+            if (!globalProgressBar) return;
+            const completedCount = state.userProgress.filter(id => !id.startsWith('quiz')).length;
+            const progressPercentage = (completedCount / totalChaptersForProgress) * 100;
+            globalProgressBar.style.width = `${progressPercentage}%`;
+        }
+
+        // --- Event Listeners & App Flow ---
+        document.body.addEventListener('click', e => {
+            if (e.target.id === 'logout-btn') signOut(auth);
+            if (e.target.id === 'login-btn') showAuthModal(true);
+            if (e.target.id === 'register-btn') showAuthModal(false);
+            if (e.target.id === 'auth-switch-btn') showAuthModal(e.target.textContent.includes('注册'));
+            
+            if (e.target.closest('.modal-backdrop') && !e.target.closest('.modal-content')) e.target.closest('.modal-backdrop').classList.remove('visible');
+
+            const navLink = e.target.closest('.nav-link');
+            if (navLink) {
+                e.preventDefault();
+                navigateTo(navLink.dataset.view);
+                mobileMenu.classList.add('hidden');
+                document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
+                searchResults.classList.add('hidden');
+                searchInput.value = '';
+            }
+            
+            const dropdownBtn = e.target.closest('.nav-dropdown-btn');
+            if (dropdownBtn) {
+                const parentDropdown = dropdownBtn.closest('.dropdown');
+                const wasOpen = parentDropdown.classList.contains('open');
+                document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
+                if (!wasOpen) parentDropdown.classList.add('open');
+            } else if (!e.target.closest('.dropdown')) {
+                document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
+            }
+
+            if (e.target.closest('.copy-btn')) {
+                const pre = e.target.closest('pre');
+                const code = pre.querySelector('code').innerText;
+                document.execCommand('copy', false, code); // Using execCommand for broader compatibility in iframes
+                e.target.innerHTML = '<i class="fa-solid fa-check"></i> 已复制!';
+                setTimeout(() => { e.target.innerHTML = '<i class="fa-solid fa-copy"></i> 复制'; }, 2000);
+            }
+        });
+
+        authModalContainer.addEventListener('submit', async e => {
+            if (e.target.id !== 'auth-form') return;
+            e.preventDefault();
+            const email = e.target.querySelector('#auth-email').value;
+            const password = e.target.querySelector('#auth-password').value;
+            const isLogin = e.target.querySelector('#auth-switch-btn').textContent.includes('注册');
+            const errorDiv = e.target.querySelector('#auth-error');
+            try {
+                if (isLogin) await signInWithEmailAndPassword(auth, email, password);
+                else await createUserWithEmailAndPassword(auth, email, password);
+                authModalContainer.classList.remove('visible');
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.classList.remove('hidden');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const homeLanding = document.getElementById('home-landing');
+            const mainApp = document.getElementById('main-app');
+            const startBtn = document.getElementById('start-experience-btn');
+            const mainLogo = document.getElementById('main-logo');
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const themeToggleBtn = document.getElementById('theme-toggle-btn');
+            const themeIcon = document.getElementById('theme-icon');
+
+            renderNav();
+            renderAuthSection();
+            updateGlobalProgressBar();
+
+            startBtn.addEventListener('click', () => {
+                // Use classList.add/remove for Tailwind's hidden utility
+                homeLanding.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+                navigateTo(window.location.hash.substring(1) || 'chapter1');
+            });
+            mainLogo.addEventListener('click', () => {
+                // Use classList.add/remove for Tailwind's hidden utility
+                mainApp.classList.add('hidden');
+                homeLanding.classList.remove('hidden');
+                cleanupAnimations();
+                state.currentView = 'home';
+                window.history.pushState({view: 'home'}, '', '#');
+            });
+            mobileMenuBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+
+            function applyTheme(theme) {
+                if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    themeIcon.classList.replace('fa-moon', 'fa-sun');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    themeIcon.classList.replace('fa-sun', 'fa-moon');
+                }
+                // Re-initialize interactive modules to apply theme-specific colors if any
+                if(state.currentView && state.currentView !== 'home') initializeInteractiveModules(state.currentView);
+            }
+            themeToggleBtn.addEventListener('click', () => {
+                const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+                localStorage.setItem('theme', newTheme);
+                applyTheme(newTheme);
+            });
+            applyTheme(localStorage.getItem('theme') || 'light');
+
+            const initialHash = window.location.hash.substring(1);
+            if (initialHash && chapterDetails[initialHash]) {
+                startBtn.click();
+            }
+            
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 300) {
+                    backToTopBtn.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+                } else {
+                    backToTopBtn.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+                }
+            });
+            backToTopBtn.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            searchInput.addEventListener('input', () => {
+                const query = searchInput.value.toLowerCase().trim();
+                if (!query) {
+                    searchResults.classList.add('hidden');
+                    return;
+                }
+                const results = Object.entries(chapterDetails).filter(([id, title]) => title.toLowerCase().includes(query) || id.toLowerCase().includes(query));
+                if (results.length > 0) {
+                    searchResults.innerHTML = results.map(([id, title]) => 
+                        `<a href="#${id}" data-view="${id}" class="nav-link block p-2 rounded-md text-sm hover:bg-themed-muted">${title}</a>`
+                    ).join('');
+                    searchResults.classList.remove('hidden');
+                } else {
+                    searchResults.innerHTML = `<div class="p-2 text-sm text-themed-secondary">无匹配结果</div>`;
+                    searchResults.classList.remove('hidden');
+                }
+            });
+            document.addEventListener('click', (e) => {
+                if (!document.getElementById('search-container').contains(e.target)) {
+                    searchResults.classList.add('hidden');
+                }
+            });
+        });
+
+        // Function to clean up animations and intervals when navigating between chapters
+        function cleanupAnimations() {
+            Object.values(state.activeAnimationFrames).forEach(id => { if (id) cancelAnimationFrame(id); });
+            state.activeAnimationFrames = {};
+            if(window.acAnimationTimeoutId) clearTimeout(window.acAnimationTimeoutId);
+            if(window.rlSimulationIntervalId) clearInterval(window.rlSimulationIntervalId);
+            if(window.bellmanInterval) clearInterval(window.bellmanInterval);
+            if(window.rlAgentIntervalId) clearInterval(window.rlAgentIntervalId);
+            // Destroy Chart.js instances if they exist
+            if(window.pidChart) { window.pidChart.destroy(); window.pidChart = null; }
+            if(window.fopdtChart) { window.fopdtChart.destroy(); window.fopdtChart = null; }
+            if(window.paretoChart) { window.paretoChart.destroy(); window.paretoChart = null; }
+            if(window.activationChart) { window.activationChart.destroy(); window.activationChart = null; }
+            if(window.rewardChart) { window.rewardChart.destroy(); window.rewardChart = null; }
+        }
+
+        // Function to navigate to a specific chapter
+        function navigateTo(viewId) {
+            if (!viewId) return;
+            cleanupAnimations(); // Clean up previous chapter's animations
+            state.currentView = viewId;
+            contentContainer.innerHTML = chapterContents[viewId] || `<div class="card p-8"><h2>内容即将上线</h2><p>我们正在努力准备这一章节的内容，敬请期待！</p></div>`;
+            updateNavActiveState();
+            updateBreadcrumb(viewId);
+            addCopyToCodeBlocks();
+            initializeInteractiveModules(viewId); // Initialize interactive elements for the new chapter
+            markChapterAsCompleted(viewId);
+            if(window.location.hash !== `#${viewId}`) window.history.pushState({view: viewId}, '', `#${viewId}`);
+            window.scrollTo(0, 0);
+        }
+
+        // Function to update the breadcrumb navigation
+        function updateBreadcrumb(viewId) {
+            const chapterTitle = chapterDetails[viewId];
+            const group = navStructure.find(g => g.chapters.includes(viewId));
+            if (chapterTitle && group) {
+                breadcrumb.innerHTML = `<a href="#" data-view="${group.chapters[0]}" class="nav-link hover:text-accent-color">${group.title}</a> &raquo; <span>${chapterTitle}</span>`;
+            } else {
+                breadcrumb.innerHTML = '';
+            }
+        }
+
+        // Function to add "Copy" buttons to code blocks
+        function addCopyToCodeBlocks() {
+            const pres = contentContainer.querySelectorAll('pre');
+            pres.forEach(pre => {
+                const btn = document.createElement('button');
+                btn.className = 'copy-btn';
+                btn.innerHTML = '<i class="fa-solid fa-copy"></i> 复制';
+                pre.appendChild(btn);
+            });
+        }
+        
+        // Function to update active state of navigation links
+        function updateNavActiveState() {
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.toggle('active', link.dataset.view === state.currentView);
+            });
+            document.querySelectorAll('.nav-dropdown-btn').forEach(btn => btn.classList.remove('active'));
+            const activeLink = document.querySelector(`.nav-link[data-view="${state.currentView}"]`);
+            if (activeLink) {
+                const parentDropdownBtn = activeLink.closest('.dropdown')?.querySelector('.nav-dropdown-btn');
+                if (parentDropdownBtn) parentDropdownBtn.classList.add('active');
+            }
+        }
+        
+        // --- Interactive Module Initialization Dispatcher ---
+        function initializeInteractiveModules(viewId) {
+            // Expose activeAnimationFrames to global scope for easier management in individual init functions
+            window.activeAnimationFrames = state.activeAnimationFrames; 
+            switch(viewId) {
+                case 'chapter1': initChapter1(); break;
+                case 'chapter2': initChapter2(); break;
+                case 'chapter3': initChapter3(); break;
+                case 'chapter4': initActorCriticViz(); break;
+                case 'chapter5': initPpoCanvas(); break;
+                case 'chapter6': initSacCanvas(); break;
+                case 'quiz1': initQuiz(); break;
+                case 'chapter7': initCmdpLab(); break;
+                case 'chapter8': initSimRealCanvas(); break; 
+                case 'chapter9': initRlTrainingLab(); break;
+                case 'chapter10': selectStep(1); break; // Default to step 1 for chapter 10
+                case 'chapter11': renderDecisionTransformerDiagram(); break;
+                case 'chapter12': renderOfflineRLDiagram(); break;
+            }
+            // Typeset MathJax equations after content is loaded
+            if (window.MathJax) MathJax.typesetPromise();
+        }
+
+        // --- All Chapter Content and Interactive Logic ---
+        const chapterContents = {
+            'chapter1': `<h2>第1章: 锅炉原理与控制</h2>
+<p class="text-lg text-themed-secondary mb-6">在应用强化学习之前，我们必须首先成为半个“锅炉专家”。本章将深入探讨锅炉的物理原理、燃烧基础以及工业界广泛使用的经典控制方法，为后续的RL优化建立坚实的领域知识基础。</p>
+<div class="card p-6 mb-6">
+    <h3>1.1 燃烧、传热与热力循环</h3>
+    <p class="text-themed-secondary mb-4">锅炉的核心使命是高效、清洁地将燃料的化学能转化为蒸汽的热能。</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+            <h4>燃烧基础：化学反应的核心</h4>
+            <p class="text-themed-secondary">燃烧需要燃料、氧化剂（空气）和点火能量。在锅炉中，我们精确控制煤粉与空气的混合比例，即<b>空燃比</b>。理想的化学计量比能完全燃烧，但实际中需要送入<b>过量空气</b>以确保燃料燃尽，但这又会增加NOx生成和排烟热损失。</p>
+        </div>
+        <div>
+            <h4>热量传递：从火焰到水</h4>
+            <p class="text-themed-secondary">热量通过三种方式传递给水冷壁、过热器等受热面：<b>辐射</b>（火焰的主要方式）、<b>对流</b>（高温烟气）和<b>传导</b>（通过管壁）。火焰中心的位置直接影响各受热面的吸热比例，是控制蒸汽温度的关键。</p>
+        </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center mt-6">
+        <div id="boiler-diagram-container" class="p-2 bg-themed-secondary rounded-lg shadow-inner"></div>
+        <div id="rankine-diagram-container" class="p-2 bg-themed-secondary rounded-lg shadow-inner"></div>
+    </div>
+</div>
+
+<div class="card p-6 mb-6">
+    <h3>1.2 系统动态与建模</h3>
+    <p class="text-themed-secondary mb-4">工业过程不是瞬时响应的。理解其动态特性是有效控制的前提。锅炉这类复杂系统的动态行为，通常可以被简化的一阶加纯迟滞(FOPDT)模型来近似描述。</p>
+    <div class="p-4 my-2 bg-themed-muted rounded text-center text-md">
+        $$G(s) = \frac{K_p e^{-\theta_p s}}{\tau_p s + 1}$$
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+        <div>
+            <ul class="list-disc list-inside space-y-2 mt-2 text-themed-secondary">
+                <li><b>$K_p$ (Process Gain) 过程增益:</b> 稳态下，输出变化量与输入变化量的比率。它表示系统的“敏感度”。</li>
+                <li><b>$\tau_p$ (Time Constant) 时间常数:</b> 系统达到新稳态63.2%所需的时间。它代表系统的“惯性”。</li>
+                <li><b>$\theta_p$ (Dead Time) 纯迟滞:</b> 从输入变化到输出开始响应的时间差。它代表系统的“延迟”。</li>
+            </ul>
+            <p class="text-themed-secondary mt-4">例如，增大给煤量后，主蒸汽温度不会立刻上升，而是会延迟($\theta_p$)一会才开始缓慢爬升($\tau_p$)，最终达到一个新的、更高的稳定温度($K_p$)。</p>
+        </div>
+        <div class="bg-themed-muted p-4 rounded-lg">
+            <h4>FOPDT 模型浏览器</h4>
+            <p class="text-sm text-themed-secondary mb-4">拖动滑块，观察不同动态参数如何影响系统的阶跃响应。</p>
+            <div>
+                <label class="font-medium flex justify-between">增益 $K_p$: <span id="kp-value">1.0</span></label>
+                <input type="range" id="kp-slider" min="0.2" max="2" step="0.1" value="1.0" class="slider w-full">
+            </div>
+            <div class="mt-2">
+                <label class="font-medium flex justify-between">时间常数 $\tau_p$: <span id="tau-value">15</span>s</label>
+                <input type="range" id="tau-slider" min="5" max="40" step="1" value="15" class="slider w-full">
+            </div>
+            <div class="mt-2">
+                <label class="font-medium flex justify-between">纯迟滞 $\theta_p$: <span id="theta-value">10</span>s</label>
+                <input type="range" id="theta-slider" min="0" max="30" step="1" value="10" class="slider w-full">
+            </div>
+        </div>
+    </div>
+    <div class="p-4 mt-4 bg-themed-muted rounded-lg">
+        <canvas id="fopdt-chart"></canvas>
+    </div>
+</div>
+
+<div class="card p-6 mb-6">
+    <h3>1.3 工业基石：PID控制回路</h3>
+    <p class="text-themed-secondary mb-4">在90%的工业场景中，PID（比例-积分-微分）控制器是维持系统稳定的中流砥柱。理解PID的原理和局限性，是理解为什么需要RL的关键。</p>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+            <p class="text-themed-secondary">PID通过三个部分来计算控制输出：</p>
+            <ul class="list-disc list-inside space-y-2 mt-2 text-themed-secondary">
+                <li><b>P (Proportional) 比例:</b> 响应当前误差。误差越大，输出越大。但仅有P会有静差。</li>
+                <li><b>I (Integral) 积分:</b> 消除静差。累积历史误差，只要误差存在，积分项就持续增长。</li>
+                <li><b>D (Derivative) 微分:</b> 预测未来。根据误差变化率进行响应，抑制超调和振荡。</li>
+            </ul>
+            <div class="p-4 mt-4 bg-themed-muted rounded-lg">
+                <canvas id="pid-chart"></canvas>
+            </div>
+        </div>
+        <div class="bg-themed-muted p-4 rounded-lg">
+            <h4>PID调谐器</h4>
+            <p class="text-sm text-themed-secondary mb-4">尝试调节P, I, D三个参数，观察系统对阶跃信号（如负荷突变）的响应曲线变化。</p>
+            <div>
+                <label for="p-gain" class="font-medium flex justify-between">比例 (P): <span id="p-gain-value">0.5</span></label>
+                <input type="range" id="p-gain" min="0.1" max="2" step="0.1" value="0.5" class="slider w-full">
+            </div>
+            <div class="mt-4">
+                <label for="i-gain" class="font-medium flex justify-between">积分 (I): <span id="i-gain-value">0.2</span></label>
+                <input type="range" id="i-gain" min="0.05" max="1" step="0.05" value="0.2" class="slider w-full">
+            </div>
+            <div class="mt-4">
+                <label for="d-gain" class="font-medium flex justify-between">微分 (D): <span id="d-gain-value">0.1</span></label>
+                <input type="range" id="d-gain" min="0" max="1" step="0.05" value="0.1" class="slider w-full">
+            </div>
+            <p class="mt-4 text-sm text-themed-secondary"><b>挑战:</b> PID参数在特定工况下调优后表现良好，但当工况（负荷、煤质）变化时，固定的PID参数难以始终保持最优。这正是RL的用武之地。</p>
+        </div>
+    </div>
+</div>`,
+            'chapter2': `<h2>第2章: 强化学习世界观</h2>
+<p class="text-lg text-themed-secondary mb-6">本章将为您构建一个完整的强化学习(RL)知识框架。我们将从其核心数学描述——马尔可夫决策过程(MDP)出发，深入探讨价值与策略的核心概念，并引出如何用更强大的序列模型来理解复杂的工业过程状态。</p>
+<div class="card p-6 mb-6">
+    <h3>2.1 马尔可夫决策过程 (MDP)</h3>
+    <p class="text-themed-secondary mb-4">RL问题通常被数学化地描述为马尔可夫决策过程 (MDP)，一个由五元组构成的模型： $(S, A, P, R, \gamma)$。其核心假设是<b>马尔可夫性质</b>：未来只与现在有关，与过去无关。即 $P(s_{t+1}|s_t, a_t, s_{t-1}, a_{t-1}, ...) = P(s_{t+1}|s_t, a_t)$。</p>
+    <ul class="list-disc list-inside space-y-2 text-themed-secondary bg-themed-muted p-4 rounded-lg">
+        <li><b>S (State)</b>: 状态集合。锅炉在时刻 $t$ 的所有相关参数的集合 $s_t$。</li>
+        <li><b>A (Action)</b>: 动作集合。智能体可以执行的操作 $a_t$，如调整总风量。</li>
+        <li><b>P (Transition Probability)</b>: 状态转移概率 $P(s_{t+1}|s_t,a_t)$。描述了在状态 $s_t$ 执行动作 $a_t$ 后，转移到状态 $s_{t+1}$ 的概率。</li>
+        <li><b>R (Reward Function)</b>: 奖励函数 $R(s_t,a_t,s_{t+1})$。执行动作后环境反馈的即时奖励 $r_t$。</li>
+        <li><b>$\gamma$ (Discount Factor)</b>: 折扣因子，取值在[0, 1]之间，用于平衡短期奖励和长期奖励的重要性。</li>
+    </ul>
+</div>
+<div class="card p-6 mb-6">
+    <h3>2.2 核心概念：策略与价值的博弈</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <h4>策略 (Policy) $\pi$</h4>
+            <p class="text-themed-secondary">策略是智能体的大脑，是其行为方式的完整描述。它是一个函数，将状态映射到动作。RL的目标就是找到一个最优策略 $\pi^*$，以最大化累积回报 $G_t = \sum_{k=0}^{\infty} \gamma^k r_{t+k}$。</p>
+        </div>
+        <div>
+            <h4>价值函数 (Value Function)</h4>
+            <p class="text-themed-secondary">价值函数用于评估一个策略有多好，它衡量了“身处某个状态”或“在某个状态下执行某个动作”的长期价值。
+            <ul class="list-disc list-inside mt-2 text-sm">
+                <li>状态价值 $V^\pi(s) = \mathbb{E}_\pi[G_t | s_t=s]$</li>
+                <li>动作价值 $Q^\pi(s, a) = \mathbb{E}_\pi[G_t | s_t=s, a_t=a]$</li>
+            </ul>
+            $Q$函数通常更受关注，因为它直接告诉我们在一个状态下哪个动作更好。
+            </p>
+        </div>
+    </div>
+    <h4>贝尔曼最优方程</h4>
+    <p class="text-themed-secondary">最优策略 $\pi^*$ 对应的价值函数 $V^*$ 和 $Q^*$ 满足一种特殊的自洽关系，即贝尔曼最优方程。它们是动态规划和许多RL算法的理论基石：</p>
+    <div class="p-2 my-2 bg-themed-secondary rounded text-center text-md">
+        $$V^*(s) = \max_a \mathbb{E}[r_{t+1} + \gamma V^*(s_{t+1}) | s_t=s, a_t=a]$$
+    </div>
+    <div class="p-2 my-2 bg-themed-secondary rounded text-center text-md">
+        $$Q^*(s, a) = \mathbb{E}[r_{t+1} + \gamma \max_{a'} Q^*(s_{t+1}, a') | s_t=s, a_t=a]$$
+    </div>
+</div>
+<div class="card p-6 mb-6">
+    <h3>2.3 核心矛盾：On-Policy vs. Off-Policy</h3>
+    <p class="text-themed-secondary mb-4">RL算法可以根据其使用数据的方式分为两大类：</p>
+    <table class="min-w-full text-sm mt-4">
+        <thead><tr><th>特性</th><th>On-Policy (同策略)</th><th>Off-Policy (异策略)</th></tr></thead>
+        <tbody class="text-themed-secondary">
+            <tr><td class="font-semibold">核心思想</td><td>学习的策略和用于收集数据的策略是同一个。边探索边学习。</td><td>使用一个行为策略收集数据，来更新另一个目标策略。</td></tr>
+            <tr><td class="font-semibold">数据利用率</td><td>低。每次策略更新后，旧数据必须丢弃。</td><td>高。可以反复利用历史数据（经验回放）。</td></tr>
+            <tr><td class="font-semibold">稳定性</td><td>通常更稳定，因为学习和探索是同步的。</td><td>可能不稳定，因为行为策略和目标策略的分布差异可能很大。</td></tr>
+            <tr><td class="font-semibold">典型算法</td><td>Sarsa, PPO, A2C</td><td>Q-Learning, DQN, DDPG, SAC</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="card p-6 mb-6">
+    <h3>2.4 现代方法：用序列模型理解工业过程</h3>
+    <p class="text-themed-secondary mb-4">锅炉等工业过程具有强烈的<b>时序依赖性</b>和<b>惯性</b>。当前的状态不仅与上一秒的动作有关，还可能与几十分钟前的燃料变化有关。将状态简单地看作一个孤立的时间点快照($s_t$)会丢失大量信息。</p>
+    <h4>从快照到历史：RNN 与 Transformer</h4>
+    <p class="text-themed-secondary mb-4">为了让智能体拥有“记忆”，研究人员引入了序列模型来处理历史数据。传统上使用<b>循环神经网络 (RNN/LSTM)</b>，它们通过内部的循环结构逐步传递信息。然而，近年来功能更强大的<b>Transformer</b>模型已成为主流，其核心是<b>自注意力机制 (Self-Attention)</b>，能让模型在处理当前时刻数据时，“回顾”整个历史序列，并为所有过去的时间点动态地分配注意力权重，从而捕捉到对当前决策最关键的历史信息。</p>
+    <h4>应用：基于Transformer的锅炉状态表征</h4>
+    <p class="text-themed-secondary mb-4">我们可以构建一个更强大的、能理解过程历史的RL智能体，其工作流程如下：</p>
+    <div id="transformer-boiler-diagram" class="p-4 bg-themed-muted rounded-lg flex justify-center"></div>
+    <ol class="list-decimal list-inside space-y-2 text-themed-secondary mt-4">
+        <li><b>数据准备：</b>从DCS中提取过去一段时间（如30分钟）的多变量时间序列数据，包括所有状态和动作。</li>
+        <li><b>定义序列状态：</b>智能体观察到的“状态”不再是 $s_t$，而是历史序列 $(s_{t-k}, a_{t-k}, ..., s_{t-1}, a_{t-1}, s_t)$。</li>
+        <li><b>编码与嵌入：</b>将序列中的每个元素（状态向量和动作向量）通过一个线性层映射为高维嵌入，并为其添加位置编码，以保留时序信息。</li>
+        <li><b>Transformer编码器：</b>将嵌入序列送入Transformer编码器。其内部的自注意力层会计算序列中任意两个时间点之间的关联强度，生成一个对整个过程历史有深刻理解的上下文表示。</li>
+        <li><b>决策输出：</b>将Transformer编码器的输出（代表了对当前状态的深度理解）送入两个小型的“决策头”网络，分别输出策略（下一个最优动作）和价值（当前状态的评分）。</li>
+    </ol>
+</div>
+<div class="card p-6 mb-6">
+    <h3>2.5 交互式动态规划求解器 (专业版)</h3>
+    <p class="text-slate-600 dark:text-slate-300 mb-4">动态规划(DP)是解决已知模型MDP的基础方法。这个升级版的求解器将让您直观地看到每一次迭代中，价值函数是如何在网格中**逐格扫描**并更新的，从而揭示算法的内在工作机制。</p>
+    <div class="flex flex-col md:flex-row gap-6 items-start">
+        <div class="flex-shrink-0 relative">
+            <canvas id="bellman-canvas" width="400" height="400" class="border rounded-lg bg-white dark:bg-slate-800 shadow-inner"></canvas>
+        </div>
+        <div class="flex-grow space-y-4">
+            <div class="grid grid-cols-2 gap-2">
+                <button id="iterate-bellman-btn" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-indigo-400"><i class="fa-solid fa-shoe-prints"></i> 迭代一步</button>
+                <button id="solve-bellman-btn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors disabled:bg-green-400"><i class="fa-solid fa-robot"></i> 自动求解</button>
+            </div>
+            <button id="reset-bellman-btn" class="w-full bg-slate-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-slate-600 transition-colors"><i class="fa-solid fa-arrow-rotate-left"></i> 重置</button>
+            <div class="p-3 bg-themed-muted rounded-lg">
+                <label for="dp-method-select" class="text-sm font-bold text-themed-secondary">选择算法:</label>
+                <select id="dp-method-select" class="w-full p-2 rounded border-gray-300 dark:bg-slate-700 dark:border-slate-600 mt-1">
+                    <option value="vi">价值迭代 (Value Iteration)</option>
+                    <option value="pi">策略迭代 (Policy Iteration)</option>
+                </select>
+            </div>
+            <div class="text-sm p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                <p><strong>迭代次数:</strong> <span id="bellman-iteration-count">0</span></p>
+                <p><strong>当前阶段:</strong> <span id="pi-phase-info">--</span></p>
+                <p><strong>折扣因子 $\gamma$:</strong> 0.9</p>
+                <div id="bellman-update-info" class="text-center font-mono h-20 mt-2 p-2 bg-slate-100 dark:bg-slate-700 rounded flex items-center justify-center text-xs">请开始迭代...</div>
+            </div>
+        </div>
+    </div>
+</div>`,
+            'chapter3': `<h2>第3章: 深度学习与RL结合</h2>
+<p class="text-lg text-themed-secondary mb-6">经典RL方法使用表格存储价值，但这在状态空间巨大时会面临"维度灾难"。深度学习通过使用神经网络(NN)作为强大的函数逼近器，催生了深度强化学习(DRL)，使其能应对拥有高维、连续状态空间的复杂问题，比如锅炉控制。</p>
+<div class="card p-6 mb-6">
+    <h3>3.1 神经网络：万能函数逼近器</h3>
+    <p class="text-themed-secondary mb-4">神经网络是DRL的核心引擎。一个基本的前馈神经网络(Feed-Forward Neural Network)，或称多层感知机(MLP)，由输入层、若干隐藏层和输出层构成。</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+        <div class="p-4 bg-themed-muted rounded-lg" id="nn-diagram-container"></div>
+        <div>
+            <ul class="list-disc list-inside space-y-2 text-themed-secondary">
+                <li><b>神经元:</b> 网络的基本计算单元，接收来自上一层的输入，进行加权求和，然后通过一个非线性的<b>激活函数</b>（如ReLU, Sigmoid）得到输出。</li>
+                <li><b>激活函数:</b> 它的作用是为网络引入非线性，使其能够学习和模拟复杂的关系。没有激活函数，多层网络也只相当于一个单层线性模型。</li>
+                <li><b>学习过程:</b> 网络通过<b>反向传播</b>和<b>梯度下降</b>进行学习。即计算预测与真实值之间的差距（损失），然后沿着能使损失减小的方向微调网络中的所有权重。</li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div class="card p-6 mb-6">
+    <h3>3.2 激活函数动物园</h3>
+    <p class="text-themed-secondary mb-4">选择合适的激活函数对神经网络的性能至关重要。下面是几种常见的激活函数：</p>
+    <div class="flex space-x-2 border-b border-themed mb-4">
+        <button class="tab-btn px-4 py-2 rounded-t-lg" data-tab="relu">ReLU</button>
+        <button class="tab-btn px-4 py-2 rounded-t-lg" data-tab="sigmoid">Sigmoid</button>
+        <button class="tab-btn px-4 py-2 rounded-t-lg" data-tab="tanh">Tanh</button>
+    </div>
+    <div id="activation-content" class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+        <div class="p-4 bg-themed-muted rounded-lg">
+            <canvas id="activation-chart" height="150"></canvas>
+        </div>
+        <div id="activation-desc" class="text-themed-secondary"></div>
+    </div>
+</div>
+<div class="card p-6 mb-6">
+    <h3>3.3 交互式理解：梯度下降与优化器</h3>
+    <p class="text-themed-secondary mb-4">梯度下降是优化神经网络的核心算法。想象一下，我们想找到下图抛物线的最低点（最小损失）。我们从一个随机点开始，计算该点的“坡度”（梯度），然后沿着坡度最陡峭的反方向迈出一步。<b>学习率</b>决定了我们每一步迈多大。</p>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+        <div class="p-4 bg-themed-muted rounded-lg">
+            <canvas id="gradient-descent-canvas" height="200"></canvas>
+        </div>
+        <div class="bg-themed-muted p-4 rounded-lg">
+            <h4>参数调整</h4>
+            <p class="text-sm text-themed-secondary mb-4">调整学习率，点击“开始”观察优化过程。普通的梯度下降使用固定的学习率，而更高级的<b>Adam优化器</b>能为每个参数自适应地调整学习率，通常收敛更快、效果更好。</p>
+            <div class="mt-4">
+                <label for="lr-slider-gd" class="font-medium flex justify-between">学习率 (Learning Rate): <span id="lr-value-gd">0.1</span></label>
+                <input type="range" id="lr-slider-gd" min="0.01" max="1.0" step="0.01" value="0.1" class="slider w-full">
+            </div>
+            <button id="start-gd-btn" class="mt-4 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">开始下降</button>
+            <p id="gd-explanation" class="mt-4 text-sm text-themed-secondary"></p>
+        </div>
+    </div>
+</div>
+<div class="card p-6">
+    <h3>3.4 深度Q网络 (DQN)</h3>
+    <p class="text-themed-secondary mb-4">DQN是DRL的开山之作，它首次成功地将深度学习与Q-Learning结合。DQN使用一个神经网络来逼近Q函数 $Q(s, a; \theta) \approx Q^*(s, a)$。为了解决训练不稳定的问题，它引入了两项关键技术：</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        <div class="p-4 bg-blue-500/10 rounded-lg">
+            <h4 class="font-bold text-blue-600 dark:text-blue-400 mt-0">经验回放 (Experience Replay)</h4>
+            <p class="text-sm mt-2">将智能体的经验元组 $(s_t, a_t, r_t, s_{t+1})$ 存入一个“回放池”。训练时，从池中随机采样一个小批量数据进行更新。这打破了数据的时间相关性，提高了数据利用效率。</p>
+        </div>
+        <div class="p-4 bg-green-500/10 rounded-lg">
+            <h4 class="font-bold text-green-600 dark:text-green-400 mt-0">目标网络 (Target Network)</h4>
+            <p class="text-sm mt-2">使用一个独立的、更新较慢的“目标网络”来计算TD目标值。这使得学习目标在一段时间内保持稳定，避免了模型“追逐自己尾巴”的问题，大幅提升了训练的稳定性。</p>
+        </div>
+    </div>
+</div>`,
+            'chapter4': `<h2>第4章: 演员-评论家架构</h2>
+<p class="text-lg text-themed-secondary mb-6">演员-评论家（Actor-Critic, AC）方法是现代RL算法的支柱，它巧妙地结合了策略学习（Policy-Based）和价值学习（Value-Based）的优点，能够高效地处理连续动作空间问题，并通常具有更稳定的收敛性。</p>
+<div class="card p-6 mb-6">
+    <h3>4.1 演员与评论家的角色分工</h3>
+    <p class="text-themed-secondary mb-4">AC方法包含两个神经网络，它们分工合作：</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="p-4 bg-blue-500/10 rounded-lg">
+            <h4 class="font-bold text-blue-600 dark:text-blue-400 mt-0">演员 (Actor) - 策略网络</h4>
+            <p class="text-sm mt-2">演员是一个参数为 $\theta$ 的策略网络 $\pi_\theta(a|s)$。它负责“表演”，即根据当前状态 $s$ 输出一个动作（或动作的概率分布）。它的目标是通过学习，让自己的“表演”越来越好。</p>
+        </div>
+        <div class="p-4 bg-green-500/10 rounded-lg">
+            <h4 class="font-bold text-green-600 dark:text-green-400 mt-0">评论家 (Critic) - 价值网络</h4>
+            <p class="text-sm mt-2">评论家是一个参数为 $\phi$ 的价值网络 $V_\phi(s)$ 或 $Q_\phi(s,a)$。它负责“打分”，即评价演员在某个状态下的表现或者某个状态-动作对的好坏。它不产出动作，只为演员提供指导信号。</p>
+        </div>
+    </div>
+    <p class="text-themed-secondary mt-4">两者协同工作：演员在台上表演（选择动作），评论家在台下打分（评估动作好坏）。演员根据评论家的分数来调整自己的表演策略，力求获得更高的分数。</p>
+</div>
+<div class="card p-6 mb-6">
+    <h3>4.2 优势函数与更新法则</h3>
+    <p class="text-themed-secondary mb-4">简单地用Q值来指导策略更新是不够的，因为在某些状态下，所有动作的Q值可能都很高。我们需要一个更具辨识度的信号：<b>优势函数 (Advantage Function)</b> $A(s,a)$。</p>
+    <div class="p-4 my-2 bg-themed-muted rounded text-center text-md">
+        $$A(s,a) = Q(s,a) - V(s)$$
+    </div>
+    <p class="text-themed-secondary mt-4">基于优势函数，更新法则变得非常直观：</p>
+    <ul class="list-disc list-inside space-y-2 text-themed-secondary mt-4">
+        <li><b>演员更新</b>: 调整策略参数 $\theta$，使得优势函数 $A(s,a)$ 为正的动作被选中的概率上升，为负的则下降。这通常通过策略梯度法，沿着 $\nabla_\theta J(\theta) = \mathbb{E}[\nabla_\theta \log \pi_\theta(a|s) A(s,a)]$ 方向更新。</li>
+        <li><b>评论家更新</b>: 调整价值参数 $\phi$，使其对价值的估计更准确。这通常通过最小化TD误差来实现，例如最小化 $(r + \gamma V_\phi(s') - V_\phi(s))^2$。</li>
+    </ul>
+</div>
+<div class="card p-6">
+    <h3>4.3 动态演示：信息流动过程</h3>
+    <p class="text-themed-secondary mb-4">点击播放下面的动画，观察一个典型的AC更新周期。注意信息是如何从环境流向评论家，再由评论家计算出优势函数来指导演员更新的。</p>
+    <div class="text-center mb-4"><button id="play-ac-viz" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">▶️ 播放流程</button></div>
+    <div id="ac-viz-explanation" class="text-center font-semibold h-10 mb-2"></div>
+    <div id="ac-diagram-container" class="flex justify-center"></div>
+</div>`,
+            'chapter5': `<h2>第5章: PPO算法详解</h2><p class="text-lg text-themed-secondary mb-6">近端策略优化（PPO）是目前应用最广泛的RL算法之一，由OpenAI提出，以其卓越的稳定性和性能而闻名。其核心思想是：在更新策略时，步子不能迈得太大，避免新旧策略差异过大导致训练崩溃。</p><div class="card p-6"><h3 class="text-xl font-bold">交互式理解：可调节的信任域裁剪</h3><p class="text-themed-secondary mb-4">令 $r_t(\theta) = \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{old}}(a_t|s_t)}$ 为新旧策略的概率比。PPO通过裁剪（Clipping）来限制这个比率在一个预设的范围 $[1-\epsilon, 1+\epsilon]$ 内。请拖动 $\epsilon$ 滑块来调整信任域大小，并切换"好动作"与"坏动作"的情景，观察目标函数如何被裁剪。</p><div class="flex justify-center items-center gap-6 mb-4"><button id="ppo-toggle-advantage" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">切换到 "坏动作"</button><div class="w-64"><label for="epsilon-slider" class="font-medium flex justify-between">裁剪范围 $\epsilon$: <span id="epsilon-value">0.2</span></label><input type="range" id="epsilon-slider" min="0.05" max="0.5" step="0.01" value="0.2" class="slider w-full h-2 bg-themed-muted rounded-lg appearance-none cursor-pointer"></div></div><canvas id="ppo-canvas" class="w-full h-64 bg-themed-muted border border-themed rounded-lg"></canvas><p id="ppo-explanation" class="text-center mt-2 font-medium"></p></div><div class="card p-6 mt-6"><h3 class="text-xl font-bold">PPO核心组件与伪代码</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="space-y-4"><div class="p-4 bg-blue-500/10 rounded-lg"><h4 class="font-bold text-blue-600 dark:text-blue-400 mt-0">裁剪代理目标</h4><p class="text-sm mt-2">这是PPO的核心创新，它通过取未裁剪和已裁剪目标的较小值，悲观地限制了策略更新的幅度，避免策略突变。</p><div class="p-2 my-2 bg-themed-secondary rounded text-center">$$L^{CLIP}(\theta) = \mathbb{E}_t \left[ \min\left(r_t(\theta)\hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t\right) \right]$$</div></div><div class="p-4 bg-green-500/10 rounded-lg"><h4 class="font-bold text-green-600 dark:text-green-400 mt-0">广义优势估计 (GAE)</h4><p class="text-sm mt-2">PPO通常采用GAE来准确估计优势函数。GAE通过加权平均多个时间步的TD误差，有效降低了优势估计的方差，提供了更稳定的优势信号。</p></div></div><div><h4 class="font-bold">PPO 伪代码</h4><pre><code>Initialize policy and value networks
+
+for iteration = 1, 2, ... do
+
+  // 1. Data Collection
+  Run old policy to collect trajectories
+
+  // 2. Advantage & Return Calculation
+  Compute advantages (GAE) and returns
+
+  // 3. Optimization
+  for K epochs do
+    for mini_batch in trajectories do
+      Update policy via clipped objective
+      Update value function via MSE
+    end for
+  end for
+  
+  Update old policy
+end for</code></pre></div></div></div>`,
+            'chapter6': `<h2>第6章: SAC算法详解</h2><p class="text-lg text-themed-secondary mb-6">软演员-评论家（SAC）是一种基于最大熵强化学习框架的off-policy算法。SAC的目标是最大化奖励的同时，也最大化策略的**熵**（随机性），带来了极强的鲁棒性和探索效率，在许多连续控制任务中表现优异。</p><div class="card p-6"><h3 class="text-xl font-bold">交互式理解：探索与利用的权衡</h3><p class="text-themed-secondary mb-4">SAC的目标函数是 $J(\pi) = \sum \mathbb{E} [r(s_t, a_t) + \alpha \mathcal{H}(\pi(\cdot|s_t))]$。其中 $\mathcal{H}$ 是策略的熵，$\alpha$ 是控制熵重要性的温度参数。请调整温度参数 $\alpha$，观察策略（蓝色区域）的变化。高 $\alpha$ 鼓励探索，低 $\alpha$ 鼓励利用。</p><canvas id="sac-canvas" class="w-full h-64 bg-themed-muted border border-themed rounded-lg"></canvas><div class="mt-4"><label for="alpha-slider" class="font-medium flex justify-between">温度 $\alpha$: <span id="alpha-value">0.20</span></label><input type="range" id="alpha-slider" min="0.01" max="1.0" step="0.01" value="0.2" class="slider w-full h-2 bg-themed-muted rounded-lg appearance-none cursor-pointer"></div><p id="sac-explanation" class="text-center mt-2 font-medium"></p></div><div class="card p-6 mt-6"><h3 class="text-xl font-bold">SAC核心组件</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="p-4 bg-purple-500/10 rounded-lg"><h4 class="font-bold text-purple-600 dark:text-purple-400 mt-0">双Q网络 (Twin Q-Critics)</h4><p class="text-sm mt-2">为了缓解价值函数在off-policy学习中被过高估计的问题（Q-value overestimation），SAC采用两个独立的Q网络，并在计算TD目标时悲观地取其较小值，使学习过程更稳定。</p></div><div class="p-4 bg-teal-500/10 rounded-lg"><h4 class="font-bold text-teal-600 dark:text-teal-400 mt-0">自动熵调优</h4><p class="text-sm mt-2">手动选择一个固定的 $\alpha$ 很困难。SAC能将 $\alpha$ 作为一个可训练参数，自动调整它以使策略的实际熵动态地接近一个预设的目标熵，实现了探索和利用的自动平衡。</p></div></div></div>`,
+            'quiz1': `<h2>阶段小测: 核心算法</h2><p class="text-lg text-themed-secondary mb-6">检验一下您对核心算法章节的理解程度吧！</p><div id="quiz-container" class="card p-6"></div>`,
+            'chapter7': `<h2>第7章: CMDP构建实验室</h2><p class="text-lg text-themed-secondary mb-6">对于既要追求经济效益，又必须遵守安全红线的任务（如锅炉壁温不能超限），我们引入**约束马尔可夫决策过程（CMDP）**。智能体的目标是在满足成本约束的前提下，最大化累积奖励。</p><div class="card p-6"><div class="grid grid-cols-1 lg:grid-cols-2 gap-8"><div id="cmdp-builder-panel"><h3 class="text-xl font-bold">1. 构建您的CMDP模型</h3><p class="text-themed-secondary mb-6">请勾选您希望纳入模型的变量。<b>奖励</b>是我们希望最大化的指标，而<b>成本/约束</b>是我们必须遵守的红线。</p><div class="mb-4"><h4 class="font-bold text-lg mb-2 text-indigo-500 dark:text-indigo-400">S - 选择状态</h4><div class="space-y-2 text-sm p-4 bg-themed-muted rounded-lg"><label class="flex items-center"><input type="checkbox" class="mr-2 cmdp-checkbox" data-target="component-nox-meter" checked> NOx浓度</label><label class="flex items-center"><input type="checkbox" class="mr-2 cmdp-checkbox" data-target="component-co-meter" checked> CO浓度</label><label class="flex items-center"><input type="checkbox" class="mr-2 cmdp-checkbox" data-target="component-efficiency-meter" checked> 热效率</label><label class="flex items-center"><input type="checkbox" class="mr-2 cmdp-checkbox" data-target="component-temp-meter" checked> 关键壁温</label></div></div><div class="mb-4"><h4 class="font-bold text-lg mb-2 text-green-600 dark:text-green-500">A - 选择动作</h4><div class="space-y-2 text-sm p-4 bg-themed-muted rounded-lg"><label class="flex items-center"><input type="checkbox" class="mr-2 cmdp-checkbox" data-target="component-air-slider" checked> 总风量</label><label class="flex items-center"><input type="checkbox" class="mr-2 cmdp-checkbox" data-target="component-tilt-slider" checked> 燃烧器摆角</label><label class="flex items-center"><input type="checkbox" class="mr-2 cmdp-checkbox" data-target="component-ofa-slider" checked> 燃尽风占比</label></div></div><div class="mb-4"><h4 class="font-bold text-lg mb-2 text-amber-600 dark:text-amber-500">R - 定义奖励</h4><div class="space-y-2 text-sm p-4 bg-themed-muted rounded-lg"><label class="flex items-center"><input type="checkbox" class="mr-2 cmdp-checkbox" data-target="component-efficiency-meter" data-type="reward" checked> 奖励：提升热效率</label><label class="flex items-center"><input type="checkbox" class="mr-2 cmdp-checkbox" data-target="component-nox-meter" data-type="reward"> 奖励：降低NOx</label></div></div><div class="mb-4"><h4 class="font-bold text-lg mb-2 text-red-600 dark:text-red-500">C - 定义成本/约束</h4><div class="space-y-2 text-sm p-4 bg-themed-muted rounded-lg"><label class="flex items-center"><input type="checkbox" class="mr-2 cmdp-checkbox" data-target="component-temp-meter" data-type="cost" checked> 约束：壁温</label><label class="flex items-center"><input type="checkbox" class="mr-2 cmdp-checkbox" data-target="component-co-meter" data-type="cost"> 约束：CO浓度</label></div></div></div><div><h3 class="text-xl font-bold">2. 实时预览与交互</h3><p class="text-themed-secondary mb-6">这里是您构建的虚拟锅炉。被定义为"奖励"的模块会以绿色高亮，"约束"模块以红色高亮。</p><div class="p-4 rounded-lg bg-slate-700 flex flex-col items-center justify-start min-h-[500px]"><h4 class="font-bold text-lg mb-2 text-white">🔥 虚拟锅炉实时视图</h4><div id="boiler-visual-container-ch7" class="w-48 h-64 bg-slate-800 rounded-t-lg relative overflow-hidden mt-4"><div id="flame-visual-ch7" class="flame-visual"></div></div><div id="dashboard-ch7" class="w-full mt-6 space-y-4 p-2"><div id="component-nox-meter" class="preview-component p-2 rounded-md transition-all duration-300"><label class="font-medium text-white text-sm">NOx</label><div class="w-full bg-slate-500 rounded-full h-3"><div id="nox-meter-fill-ch7" class="bg-red-500 h-3 rounded-full"></div></div></div><div id="component-co-meter" class="preview-component p-2 rounded-md transition-all duration-300"><label class="font-medium text-white text-sm">CO</label><div class="w-full bg-slate-500 rounded-full h-3"><div id="co-meter-fill-ch7" class="bg-amber-500 h-3 rounded-full"></div></div></div><div id="component-temp-meter" class="preview-component p-2 rounded-md transition-all duration-300"><label class="font-medium text-white text-sm">壁温</label><div class="w-full bg-slate-500 rounded-full h-3"><div id="temp-meter-fill-ch7" class="bg-orange-500 h-3 rounded-full"></div></div></div><div id="component-efficiency-meter" class="preview-component p-2 rounded-md transition-all duration-300"><label class="font-medium text-white text-sm">热效率</label><div class="text-right"><span id="efficiency-value-ch7" class="text-xl font-bold text-green-400">92.50</span> %</div></div></div></div><div id="controls-ch7" class="mt-4 p-4 bg-themed-secondary rounded-lg space-y-4 border border-themed"><div id="component-air-slider" class="preview-component"><label for="air-slider-ch7" class="font-medium flex justify-between text-sm">总风量: <span id="air-value-ch7">75</span>%</label><input type="range" id="air-slider-ch7" min="50" max="100" value="75" class="slider w-full"></div><div id="component-tilt-slider" class="preview-component"><label for="tilt-slider-ch7" class="font-medium flex justify-between text-sm">摆角: <span id="tilt-value-ch7">0</span>°</label><input type="range" id="tilt-slider-ch7" min="-15" max="15" value="0" class="slider w-full"></div><div id="component-ofa-slider" class="preview-component"><label for="ofa-slider-ch7" class="font-medium flex justify-between text-sm">OFA占比: <span id="ofa-value-ch7">30</span>%</label><input type="range" id="ofa-slider-ch7" min="10" max="50" value="30" class="slider w-full"></div></div></div></div><div class="mt-8 pt-4 border-t border-themed"><h3 class="text-xl font-bold">3. 您生成的CMDP模型</h3><div id="cmdp-summary-ch7" class="text-sm grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-indigo-500/10 rounded-lg mt-4"><div><strong>状态:</strong><ul id="summary-State-ch7" class="list-disc list-inside"></ul></div><div><strong>动作:</strong><ul id="summary-Action-ch7" class="list-disc list-inside"></ul></div><div><strong>奖励:</strong><ul id="summary-Reward-ch7" class="list-disc list-inside"></ul></div><div><strong>成本:</strong><ul id="summary-Cost-ch7" class="list-disc list-inside"></ul></div></div></div></div>`,
+            'chapter8': `<h2>第8章: 构建数字孪生</h2><p class="text-lg text-themed-secondary mb-6">RL需要在环境中进行海量试错，这在真实的工业设备上是不可行的。因此，构建一个高保真的仿真环境——"数字孪生"——是项目成功的先决条件。</p><div class="card p-6 mb-6"><h3 class="text-xl font-bold">什么是数字孪生？</h3><p class="text-themed-secondary">数字孪生是真实物理系统的虚拟副本，能模拟真实锅炉的动态响应。构建方法主要有两类：</p><ul class="list-disc list-inside space-y-2 text-themed-secondary"><li><b>机理建模</b>：基于物理定律（如流体力学、传热学、化学反应动力学）构建复杂的微分方程组。优点是泛化性强，可解释性好；缺点是建模难度大，计算量巨大。</li><li><b>数据驱动建模</b>：利用电厂DCS系统积累的历史数据，通过机器学习方法（如LSTM、Transformer）学习输入（控制动作）与输出（状态指标）的映射关系。优点是建模快速；缺点是依赖数据质量，泛化能力和可解释性可能较差。</li></ul><p class="text-themed-secondary mt-4">在实践中，通常将两者结合，用机理模型搭建基础框架，再用数据驱动模型修正和拟合机理模型与现实的偏差。</p></div><div class="card p-6 mb-6"><h3 class="text-xl font-bold">"仿真到现实"的鸿沟 (Sim-to-Real Gap)</h3><p class="mb-4 text-themed-secondary">任何仿真都无法100%复刻现实。缩小这个鸿沟至关重要。一种有效的技术是**领域随机化 (Domain Randomization)**：在训练时，故意给仿真环境增加各种随机性（如传感器噪声、执行器延迟、煤质波动等），迫使AI学习一个对这些不确定性不敏感的、更为鲁棒的策略。</p></div><div class="card p-6"><h3 class="text-xl font-bold">交互演示：模型质量与鲁棒性</h3><p class="text-themed-secondary mb-4">拖动滑块模拟模型与现实的匹配程度。黑色实线代表"真实世界"，蓝色虚线代表数字孪生模型的预测。匹配度越低，"Sim-to-Real"的鸿沟越大。</p><canvas id="sim-real-canvas" class="w-full h-64 bg-themed-muted border border-themed rounded-lg"></canvas><div><label for="model-quality-slider" class="font-medium flex justify-between">模型-现实匹配度: <span id="model-quality-value">50</span>%</label><input type="range" id="model-quality-slider" min="10" max="98" step="1" value="50" class="slider w-full h-2 bg-themed-muted rounded-lg"></div></div>`,
+            'chapter9': `<h2>第9章: 训练实验与调试 (专业版)</h2><p class="text-lg text-themed-secondary mb-8">欢迎来到RL训练实验室！在这个更高级的可视化环境中，您不仅能看到智能体的移动，还能实时观察每个状态下所有动作的Q值（以热力图形式呈现），从而更深刻地理解智能体的“决策过程”。</p><div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="lg:col-span-1 card p-6"><h3 class="text-xl font-bold mt-0">参数调节</h3><div class="space-y-4"><div><label for="gamma-slider" class="font-medium flex justify-between">远见程度 ($\gamma$): <span id="gamma-value">0.9</span></label><input type="range" id="gamma-slider" min="0.5" max="0.99" step="0.01" value="0.9" class="slider w-full"></div><div><label for="lr-slider" class="font-medium flex justify-between">学习率 ($\alpha_{lr}$): <span id="lr-value">0.1</span></label><input type="range" id="lr-slider" min="0.01" max="0.5" step="0.01" value="0.1" class="slider w-full"></div><div><label for="epsilon-slider-ch9" class="font-medium flex justify-between">探索率 ($\epsilon$): <span id="epsilon-value-ch9">0.2</span></label><input type="range" id="epsilon-slider-ch9" min="0.05" max="1.0" step="0.05" value="0.2" class="slider w-full"></div></div><button id="start-sim" class="mt-6 w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-indigo-400">开始训练</button></div><div class="lg:col-span-2 card p-6"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><h3 class="text-xl font-bold mt-0">Q值与策略可视化</h3><canvas id="rl-canvas" class="w-full bg-themed-muted border border-themed rounded-lg aspect-square"></canvas><div class="flex justify-around text-xs mt-2 flex-wrap"><span class="flex items-center"><div class="w-3 h-3 rounded-full bg-blue-500 mr-1"></div>智能体</span><span class="flex items-center"><div class="w-3 h-3 rounded-full bg-green-200 mr-1"></div>目标</span><span class="flex items-center"><div class="w-3 h-3 rounded-full bg-red-200 mr-1"></div>危险</span></div></div><div><h3 class="text-xl font-bold mt-0">学习曲线 (平均奖励)</h3><div class="w-full h-64 border border-themed rounded-lg p-2"><canvas id="rewardChart"></canvas></div><div class="mt-2 text-center text-sm"><p>回合: <span id="episode-counter">0</span></p><p>平均奖励: <span id="total-reward">0</span></p></div></div></div></div></div>`,
+            'chapter10': `<h2>第10章: 三阶段安全部署</h2><p class="text-lg text-themed-secondary mb-6">将AI安全地引入到现实工厂中，是一个比算法本身更具挑战性的工程问题。我们必须采用一套循序渐进的策略，其核心是建立信任、管理风险，确保万无一失。</p><div class="flex flex-col lg:flex-row gap-6"><div class="w-full lg:w-1/3 space-y-2"><div id="step1" class="p-4 rounded-lg cursor-pointer deployment-step" onclick="selectStep(1)"><h4 class="font-bold text-lg mt-0">阶段一：建议模式</h4><p class="text-sm">AI作为"影子顾问"，零风险验证性能。</p></div><div id="step2" class="p-4 rounded-lg cursor-pointer deployment-step" onclick="selectStep(2)"><h4 class="font-bold text-lg mt-0">阶段二：监督控制</h4><p class="text-sm">AI调整PID设定值，利用现有系统作为安全网。</p></div><div id="step3" class="p-4 rounded-lg cursor-pointer deployment-step" onclick="selectStep(3)"><h4 class="font-bold text-lg mt-0">阶段三：直接控制</h4><p class="text-sm">AI直接输出指令，但须通过"安全层"过滤。</p></div></div><div id="step-content" class="flex-1 card p-6 min-h-[300px]"></div></div>`,
+            'chapter11': `<h2>第11章: 总结与未来</h2><p class="text-lg text-themed-secondary mb-6">我们从锅炉原理出发，探讨了如何将工业问题抽象为CMDP模型，介绍了PPO和SAC等算法，并阐述了从数字孪生到三阶段安全部署的完整工程实践框架。成功的工业AI应用，是**算法、领域知识和工程实践**三者深度融合的产物。</p><div class="card p-6 mb-6"><h3 class="text-xl font-bold">前沿探索：决策转换器 (Decision Transformer)</h3><p class="text-themed-secondary mb-4">我们在第二章中介绍了使用Transformer作为状态编码器的思路。<b>决策转换器 (Decision Transformer, DT)</b> 更进一步，将整个RL问题重新定义为一个<b>序列建模问题</b>，这在处理工业离线数据时尤其强大。</p><div id="decision-transformer-diagram" class="p-4 bg-themed-muted rounded-lg flex justify-center items-center my-4"></div><p class="text-themed-secondary">与传统RL寻求最优价值函数 $V^*$ 或策略 $\pi^*$ 不同，DT将历史轨迹数据格式化为“期望回报-状态-动作”($\hat{R}_t, s_t, a_t$)的序列，然后训练一个Transformer模型，在给定未来的期望回报和过去的状态-动作历史后，自回归地预测出下一个能实现该期望回报的动作 $a_t$。</p><p class="mt-4 text-themed-secondary">这种方法的优势在于：<br><ul class="list-disc list-inside ml-4"><li>能充分利用离线数据集，无需在线交互，非常适合工业场景。</li><li>能有效捕捉工业过程中的长时序动态。</li><li>通过设定不同的期望回报，可以灵活地引导策略的“野心水平”（例如，追求高效率还是低排放）。</li></ul></p></div><div class="card p-6"><h3 class="text-xl font-bold">未来研究方向</h3><p class="text-themed-secondary mb-6">锅炉优化领域仍有广阔的探索空间：</p><div class="grid grid-cols-1 md:grid-cols-3 gap-6"><div class="p-4 bg-themed-muted rounded-lg hover:shadow-md transition"><h4 class="font-bold text-lg mt-0">多智能体 (MARL)</h4><p class="text-sm mt-2">将每个燃烧器视为一个独立的智能体，学习协同配合，以实现比单智能体更精细的控制。</p></div><div class="p-4 bg-themed-muted rounded-lg hover:shadow-md transition"><h4 class="font-bold text-lg mt-0">可解释性 (XAI)</h4><p class="text-sm mt-2">让AI不再是"黑箱"，能够解释其决策原因，对于建立操作员信任至关重要。</p></div><div class="p-4 bg-themed-muted rounded-lg hover:shadow-md transition"><h4 class="font-bold text-lg mt-0">迁移学习与终身学习</h4><p class="text-sm mt-2">将在A机组上训练好的模型，快速适配到B机组上。并让模型在上线后能持续地在线学习，适应新情况。</p></div></div></div>`,
+            'chapter12': `<h2>第12章: 高级主题 - 离线强化学习</h2><p class="text-lg text-themed-secondary mb-6">在许多现实世界的工业应用中，让一个未经训练的智能体自由地与环境（如真实的锅炉）交互来进行"试错"学习是不可行的——成本高昂且风险巨大。离线强化学习（Offline Reinforcement Learning）正是在这种背景下应运而生的一套关键技术。</p><div class="card p-6 mb-6"><h3 class="text-xl font-bold">什么是离线RL？</h3><p class="text-themed-secondary mb-4">与传统的在线RL（Online RL）在学习过程中可以不断与环境交互并收集新数据不同，离线RL的目标是**仅从一个预先收集好的、固定的历史数据集中学习出一个有效的策略**。这个数据集可能来自于人类专家的操作记录、传统控制器（如PID）的运行日志，或者之前其他策略的运行数据。</p><div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center"><div class="p-4 bg-blue-500/10 rounded-lg"><h4 class="font-bold text-blue-600 dark:text-blue-400 mt-0">在线RL (Online RL)</h4><p class="text-sm mt-2">智能体与环境构成一个闭环。智能体执行动作 -> 环境反馈 -> 智能体更新策略 -> 执行新动作... 这个循环不断进行。</p></div><div class="p-4 bg-green-500/10 rounded-lg"><h4 class="font-bold text-green-600 dark:text-green-400 mt-0">离线RL (Offline RL)</h4><p class="text-sm mt-2">学习过程与数据收集过程完全分离。我们只有一个固定的数据集 $D = \{(s, a, r, s')\}$，并且在学习期间无法与环境进行任何新的交互。</p></div></div></div><div class="card p-6"><h3 class="text-xl font-bold">核心挑战：分布外推误差</h3><p class="text-themed-secondary mb-4">离线RL的主要挑战来自于**分布偏移（Distributional Shift）**。当学习的策略 $\pi_\theta$ 想要尝试一个动作 $a$，而这个动作在数据集的行为策略 $\pi_\beta$ 中很少或从未出现过时，价值函数对这个"分布外"（Out-of-Distribution, OOD）动作的估计就会变得非常不准确，产生巨大的外推误差。现代离线RL算法的核心思想是**策略约束（Policy Constraint）**，即学习的策略应该被约束，使其尽可能地与数据集中的行为策略保持接近。</p><div id="offline-rl-diagram" class="p-4 bg-themed-muted rounded-lg flex justify-center items-center mt-4"></div></div>`,
+            'glossary': `<h2>关键术语表 (Glossary)</h2>
+            <div class="space-y-4">
+                <div class="card p-4"><h3 class="text-lg font-bold mt-0">PID 控制</h3><p class="text-sm text-themed-secondary">比例-积分-微分控制器，工业控制中最经典和广泛使用的反馈控制器。</p></div>
+                <div class="card p-4"><h3 class="text-lg font-bold mt-0">FOPDT 模型</h3><p class="text-sm text-themed-secondary">一阶加纯迟滞(First-Order Plus Dead Time)模型，一种常用于近似描述工业过程动态特性的简化数学模型。</p></div>
+                <div class="card p-4"><h3 class="text-lg font-bold mt-0">Model-Based vs. Model-Free (基于模型 vs. 无模型)</h3><p class="text-sm text-themed-secondary">基于模型的RL尝试学习环境的模型（即状态转移函数P和奖励函数R），然后利用这个模型进行规划。无模型的RL则不学习模型，直接学习一个策略或价值函数。PPO和SAC都是无模型算法。</p></div>
+                <div class="card p-4"><h3 class="text-lg font-bold mt-0">On-Policy vs. Off-Policy (同策略 vs. 异策略)</h3><p class="text-sm text-themed-secondary">同策略算法使用当前策略产生的数据来更新当前策略（如PPO）。异策略算法可以使用过去策略（甚至人类专家）产生的数据来更新当前策略（如DQN, SAC），这通常能带来更高的数据效率。</p></div>
+                <div class="card p-4"><h3 class="text-lg font-bold mt-0">Self-Attention (自注意力机制)</h3><p class="text-sm text-themed-secondary">Transformer模型的核心，允许模型在处理序列中的一个元素时，同时考虑并权衡序列中所有其他元素的重要性。</p></div>
+                <div class="card p-4"><h3 class="text-lg font-bold mt-0">Sim-to-Real Gap (仿真到现实的鸿沟)</h3><p class="text-sm text-themed-secondary">指在仿真环境中训练出的策略，在部署到真实物理世界时性能下降的现象。这是因为仿真环境无法100%精确地模拟真实世界。缩小这一鸿沟是工程实践中的核心挑战。</p></div>
+            </div>`,
+            'team': `<h2>团队介绍</h2><p class="text-lg text-themed-secondary mb-6">我们是一支致力于将前沿人工智能技术与工业实践相结合的团队，专注于为能源、制造等关键领域提供高效、可靠的智能化解决方案。</p><div class="flex flex-col items-center"><img src="https://placehold.co/96x96/ffffff/4f46e5?text=SEU" alt="东南大学logo" style="width:96px;max-width:30vw;" class="mb-6"><div class="card text-center p-10" style="max-width:420px;"><img class="w-48 h-48 rounded-full mx-auto mb-6 border-4 border-indigo-200" src="https://placehold.co/192x192/e0e7ff/3730a3?text=HGC" alt="侯冠辰"><h3 class="text-2xl font-bold m-0 mb-2">侯冠辰</h3><p class="text-indigo-500 dark:text-indigo-400 text-lg mb-2">项目负责人 & 算法工程师</p><p class="text-base text-themed-secondary">负责核心强化学习算法的研发、模型训练与部署策略制定。</p></div></div>`,
+            'resources': `<h2>关键资源</h2><p class="text-lg text-themed-secondary mb-6">本平台内容深受以下经典研究与资料的启发。我们强烈推荐希望深入学习的同学阅读和探索。</p><div class="space-y-8"><div><h3 class="text-xl font-bold">奠基性论文</h3><ul class="list-disc list-inside space-y-2 mt-4 text-themed-secondary"><li>Vaswani, A., et al. (2017). <a href="https://arxiv.org/abs/1706.03762" target="_blank" class="text-indigo-500 hover:underline">Attention Is All You Need</a>. arXiv. (Transformer)</li><li>Mnih, V., et al. (2015). <a href="https://www.nature.com/articles/nature14236" target="_blank" class="text-indigo-500 hover:underline">Human-level control through deep reinforcement learning</a>. Nature. (DQN)</li><li>Schulman, J., et al. (2017). <a href="https://arxiv.org/abs/1707.06347" target="_blank" class="text-indigo-500 hover:underline">Proximal Policy Optimization Algorithms</a>. arXiv. (PPO)</li><li>Haarnoja, T., et al. (2018). <a href="https://arxiv.org/abs/1812.05905" target="_blank" class="text-indigo-500 hover:underline">Soft Actor-Critic Algorithms and Applications</a>. arXiv. (SAC)</li><li>Chen, L., et al. (2021). <a href="https://arxiv.org/abs/2106.01345" target="_blank" class="text-indigo-500 hover:underline">Decision Transformer: Reinforcement Learning via Sequence Modeling</a>. arXiv. (Decision Transformer)</li><li>Levine, S., et al. (2020). <a href="https://arxiv.org/abs/2004.07219" target="_blank" class="text-indigo-500 hover:underline">Offline Reinforcement Learning: Tutorial, Review, and Perspectives on Open Problems</a>. arXiv. (Offline RL)</li></ul></div><div><h3 class="text-xl font-bold">推荐书籍</h3><ul class="list-disc list-inside space-y-2 mt-4 text-themed-secondary"><li>Sutton, R. S., & Barto, A. G. (2018). <a href="http://incompleteideas.net/book/the-book-2nd.html" target="_blank" class="text-indigo-500 hover:underline">Reinforcement Learning: An Introduction</a>. MIT press. (被誉为RL领域的"圣经")</li><li>Goodfellow, I., Bengio, Y., & Courville, A. (2016). <a href="https://www.deeplearningbook.org/" target="_blank" class="text-indigo-500 hover:underline">Deep Learning</a>. MIT press. (深度学习领域的权威著作)</li></ul></div><div><h3 class="text-xl font-bold">在线课程与资源</h3><ul class="list-disc list-inside space-y-2 mt-4 text-themed-secondary"><li><a href="https://spinningup.openai.com/en/latest/" target="_blank" class="text-indigo-500 hover:underline">OpenAI Spinning Up in Deep RL</a>: OpenAI出品的优秀深度强化学习入门教程。</li><li><a href="https://huggingface.co/deep-rl-course/unit0/introduction" target="_blank" class="text-indigo-500 hover:underline">Hugging Face Deep RL Course</a>: Hugging Face推出的免费深度强化学习课程。</li></ul></div></div>`
+        };
+
+        // --- Chapter 1 Interactive Logic ---
+        function initChapter1() {
+            initPidTuner();
+            initFopdtExplorer();
+            renderBoilerDiagram();
+            renderRankineDiagram();
+            initBoilerSandbox(); // New interactive sandbox
+        }
+
+        // --- Chapter 2 Interactive Logic ---
+        function initChapter2() {
+            initBellmanGrid();
+            renderTransformerBoilerDiagram(); // New diagram for Transformer
+            renderRlTaxonomy(); // RL Taxonomy diagram
+        }
+
+        // --- Chapter 3 Interactive Logic ---
+        function initChapter3() {
+            renderNNDiagram(); // New diagram for Neural Network
+            initGradientDescent(); // New interactive gradient descent
+            initActivationVisualizer(); // New interactive activation functions
+        }
+
+        // Chapter 1: PID Tuner
+        function initPidTuner() {
+            const canvas = document.getElementById('pid-chart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const pSlider = document.getElementById('p-gain');
+            const iSlider = document.getElementById('i-gain');
+            const dSlider = document.getElementById('d-gain');
+            const pValue = document.getElementById('p-gain-value');
+            const iValue = document.getElementById('i-gain-value');
+            const dValue = document.getElementById('d-gain-value');
+            
+            let Kp = 0.5, Ki = 0.2, Kd = 0.1;
+
+            function simulatePID() {
+                let pv = 0; // Process variable
+                let error = 0;
+                let integral = 0;
+                let lastError = 0;
+                const setpoint = 1.0;
+                const data = [];
+                const labels = [];
+                
+                for(let t = 0; t < 100; t++) {
+                    error = setpoint - pv;
+                    integral += error;
+                    const derivative = error - lastError;
+                    const output = Kp * error + Ki * integral * 0.1 + Kd * derivative * 10;
+                    lastError = error;
+                    pv += output * 0.2; // Simple system dynamics for visualization
+                    data.push(pv);
+                    labels.push(t);
+                }
+                return {data, labels};
+            }
+
+            function updateChart() {
+                const {data, labels} = simulatePID();
+                if (window.pidChart) window.pidChart.destroy();
+
+                const isDark = document.documentElement.classList.contains('dark');
+                const gridColor = isDark ? 'rgba(148, 163, 184, 0.2)' : 'rgba(0, 0, 0, 0.1)';
+                const textColor = isDark ? '#94a3b8' : '#475569';
+                
+                window.pidChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                        {
+                            label: 'Setpoint',
+                            data: Array(100).fill(1.0),
+                            borderColor: '#ef4444',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            borderDash: [5, 5]
+                        },
+                        {
+                            label: 'Process Variable',
+                            data: data,
+                            borderColor: '#4f46e5',
+                            borderWidth: 2.5,
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        animation: { duration: 0 },
+                        scales: {
+                            y: { min: -0.5, max: 2.0, grid: { color: gridColor }, ticks: { color: textColor } },
+                            x: { grid: { color: gridColor }, ticks: { color: textColor } }
+                        },
+                        plugins: { legend: { labels: { color: textColor } } }
+                    }
+                });
+            }
+
+            pSlider.addEventListener('input', (e) => { Kp = parseFloat(e.target.value); pValue.textContent = Kp.toFixed(2); updateChart(); });
+            iSlider.addEventListener('input', (e) => { Ki = parseFloat(e.target.value); iValue.textContent = Ki.toFixed(2); updateChart(); });
+            dSlider.addEventListener('input', (e) => { Kd = parseFloat(e.target.value); dValue.textContent = Kd.toFixed(2); updateChart(); });
+
+            updateChart();
+        }
+
+        // Chapter 1: FOPDT Explorer
+        function initFopdtExplorer() {
+            const canvas = document.getElementById('fopdt-chart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const kpSlider = document.getElementById('kp-slider');
+            const tauSlider = document.getElementById('tau-slider');
+            const thetaSlider = document.getElementById('theta-slider');
+            const kpValue = document.getElementById('kp-value');
+            const tauValue = document.getElementById('tau-value');
+            const thetaValue = document.getElementById('theta-value');
+
+            function updateChart() {
+                const Kp = parseFloat(kpSlider.value);
+                const tau = parseFloat(tauSlider.value);
+                const theta = parseFloat(thetaSlider.value);
+                kpValue.textContent = Kp.toFixed(1);
+                tauValue.textContent = tau.toFixed(0) + 's';
+                thetaValue.textContent = theta.toFixed(0) + 's';
+
+                const labels = Array.from({length: 100}, (_, i) => i);
+                const data = labels.map(t => {
+                    if (t < theta) return 0;
+                    return Kp * (1 - Math.exp(-(t - theta) / tau));
+                });
+
+                if (window.fopdtChart) window.fopdtChart.destroy();
+                const isDark = document.documentElement.classList.contains('dark');
+                const gridColor = isDark ? 'rgba(148, 163, 184, 0.2)' : 'rgba(0, 0, 0, 0.1)';
+                const textColor = isDark ? '#94a3b8' : '#475569';
+
+                window.fopdtChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '系统响应',
+                            data: data,
+                            borderColor: '#4f46e5',
+                            borderWidth: 2.5,
+                            pointRadius: 0,
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        animation: { duration: 0 },
+                        scales: {
+                            y: { title: { display: true, text: '输出', color: textColor }, min: 0, max: 2.5, grid: { color: gridColor }, ticks: { color: textColor } },
+                            x: { title: { display: true, text: '时间 (s)', color: textColor }, grid: { color: gridColor }, ticks: { color: textColor } }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+
+            [kpSlider, tauSlider, thetaSlider].forEach(slider => slider.addEventListener('input', updateChart));
+            updateChart();
+        }
+
+        // Chapter 3: Gradient Descent Visualizer
+        function initGradientDescent() {
+            const canvas = document.getElementById('gradient-descent-canvas');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const lrSlider = document.getElementById('lr-slider-gd');
+            const lrValue = document.getElementById('lr-value-gd');
+            const startBtn = document.getElementById('start-gd-btn');
+            const explanationEl = document.getElementById('gd-explanation');
+
+            let lr = 0.1;
+            let x = -0.8;
+            let isAnimating = false;
+
+            const lossFunc = (x) => x * x; // Simple quadratic loss function
+            const gradientFunc = (x) => 2 * x; // Derivative of x^2
+            
+            function draw() {
+                const w = canvas.width, h = canvas.height;
+                ctx.clearRect(0, 0, w, h);
+
+                // Map x from [-1, 1] to canvas width, y from [0, 1] to canvas height
+                const toCanvasX = (x_val) => w / 2 + x_val * w / 2.2;
+                const toCanvasY = (y_val) => h - 20 - y_val * (h - 20); // Invert y-axis for plotting
+
+                // Draw loss curve
+                ctx.beginPath();
+                ctx.strokeStyle = document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b';
+                ctx.lineWidth = 2;
+                for(let i = -1; i <= 1; i += 0.02) {
+                    ctx.lineTo(toCanvasX(i), toCanvasY(lossFunc(i)));
+                }
+                ctx.stroke();
+
+                // Draw current point (optimizer)
+                const cx = toCanvasX(x);
+                const cy = toCanvasY(lossFunc(x));
+                ctx.beginPath();
+                ctx.fillStyle = '#4f46e5';
+                ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            function animate() {
+                if(!isAnimating) {
+                    startBtn.disabled = false;
+                    startBtn.textContent = "重新开始";
+                    if (x > -0.01 && x < 0.01) {
+                            explanationEl.textContent = '已收敛到最低点！';
+                    } else if (Math.abs(x) > 1.0) {
+                        explanationEl.textContent = '学习率过大，发生振荡并发散！';
+                    }
+                    return;
+                }
+                const grad = gradientFunc(x);
+                x -= lr * grad; // Update x using gradient descent
+                draw();
+                // Stop animation if converged or diverged
+                if(Math.abs(grad) < 0.001 || Math.abs(x) > 1.2) {
+                    isAnimating = false;
+                }
+                state.activeAnimationFrames.gradientDescent = requestAnimationFrame(animate);
+            }
+
+            startBtn.addEventListener('click', () => {
+                if(isAnimating) return;
+                isAnimating = true;
+                x = -0.8; // Reset position for a new simulation
+                startBtn.disabled = true;
+                startBtn.textContent = "下降中...";
+                explanationEl.textContent = '观察点如何找到最低点。';
+                if (lr > 0.95) {
+                   explanationEl.textContent = '警告：学习率非常大，可能导致发散！';
+                }
+                animate();
+            });
+
+            lrSlider.addEventListener('input', e => {
+                lr = parseFloat(e.target.value);
+                lrValue.textContent = lr.toFixed(2);
+            });
+            
+            draw(); // Initial draw
+        }
+
+        // Chapter 3: Activation Function Visualizer
+        function initActivationVisualizer() {
+            const canvas = document.getElementById('activation-chart');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const descEl = document.getElementById('activation-desc');
+            const tabs = document.querySelectorAll('.tab-btn');
+            let chart;
+
+            // Define activation functions and their descriptions
+            const functions = {
+                relu: {
+                    func: x => Math.max(0, x),
+                    desc: "<b>ReLU (Rectified Linear Unit):</b> 计算简单，是目前最常用的激活函数。它能有效缓解梯度消失问题，但负值部分的梯度为0，可能导致神经元“死亡”。"
+                },
+                sigmoid: {
+                    func: x => 1 / (1 + Math.exp(-x)),
+                    desc: "<b>Sigmoid:</b> 将输入压缩到(0, 1)之间，常用于二分类任务的输出层。缺点是容易发生梯度饱和和梯度消失，且输出不以0为中心。"
+                },
+                tanh: {
+                    func: x => Math.tanh(x),
+                    desc: "<b>Tanh (Hyperbolic Tangent):</b> 将输入压缩到(-1, 1)之间，输出以0为中心，通常比Sigmoid收敛更快。但仍存在梯度饱和问题。"
+                }
+            };
+
+            function drawActivationChart(type) {
+                if(chart) chart.destroy(); // Destroy previous chart instance
+                const {func, desc} = functions[type];
+                descEl.innerHTML = desc;
+
+                // Generate data points for the chart
+                const labels = Array.from({length: 101}, (_, i) => (i - 50) / 10); // x-values from -5 to 5
+                const data = labels.map(func);
+
+                const isDark = document.documentElement.classList.contains('dark');
+                const gridColor = isDark ? 'rgba(148, 163, 184, 0.2)' : 'rgba(0, 0, 0, 0.1)';
+                const textColor = isDark ? '#94a3b8' : '#475569';
+                const lineColor = isDark ? '#a78bfa' : '#6366f1';
+
+                window.activationChart = new Chart(ctx, {
+                    type: 'line',
+                    data: { labels, datasets: [{ data, borderColor: lineColor, borderWidth: 2.5, pointRadius: 0, tension: 0.1 }] },
+                    options: {
+                        scales: {
+                            y: { grid: { color: gridColor, zeroLineColor: textColor }, ticks: { color: textColor } },
+                            x: { grid: { color: gridColor, zeroLineColor: textColor }, ticks: { color: textColor } }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+
+            // Add event listeners to tab buttons
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    drawActivationChart(tab.dataset.tab);
+                });
+            });
+
+            // Initial render
+            tabs[0].classList.add('active');
+            drawActivationChart('relu');
+        }
+
+        // Chapter 2: Bellman Equation Solver (Grid World)
+        function initBellmanGrid() {
+            const canvas = document.getElementById('bellman-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const iterateBtn = document.getElementById('iterate-bellman-btn');
+            const solveBtn = document.getElementById('solve-bellman-btn');
+            const resetBtn = document.getElementById('reset-bellman-btn');
+            const iterCountEl = document.getElementById('bellman-iteration-count');
+            const updateInfoEl = document.getElementById('bellman-update-info');
+            const methodSelect = document.getElementById('dp-method-select');
+            const phaseInfoEl = document.getElementById('pi-phase-info');
+
+            const GRID_SIZE = 5;
+            const GAMMA = 0.9;
+            const REWARDS = { goal: 10, trap: -10, step: -0.1 };
+            const goal = {x: 4, y: 4};
+            const traps = [{x: 2, y: 2}, {x: 1, y: 3}];
+            const walls = [{x: 3, y: 1}];
+            const actions = [[0, -1], [0, 1], [-1, 0], [1, 0]]; // U, D, L, R (dx, dy)
+            const arrows = ['↑', '↓', '←', '→']; // Corresponding arrow symbols
+
+            let values, policy, iterationCount, pi_phase, isSolving, sweepPos;
+            const convergence_threshold = 1e-4;
+
+            const delay = ms => new Promise(res => setTimeout(res, ms));
+
+            function reset() {
+                if (window.bellmanInterval) clearInterval(window.bellmanInterval);
+                if (state.activeAnimationFrames.bellmanSolve) clearTimeout(state.activeAnimationFrames.bellmanSolve);
+                isSolving = false;
+                sweepPos = null;
+                solveBtn.disabled = false;
+                iterateBtn.disabled = false;
+                solveBtn.innerHTML = '<i class="fa-solid fa-robot"></i> 自动求解';
+                
+                iterationCount = 0;
+                // Initialize values to 0, policy to random actions
+                values = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+                policy = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0).map(()=> Math.floor(Math.random() * 4)));
+                
+                pi_phase = 'evaluation'; // For Policy Iteration
+                updatePhaseDisplay();
+                iterCountEl.textContent = iterationCount;
+                updateInfoEl.innerHTML = '环境已重置。';
+
+                drawGrid();
+            }
+
+            async function iterate(isAuto = false) {
+                iterateBtn.disabled = true;
+                solveBtn.disabled = true;
+
+                const method = methodSelect.value;
+                let is_converged = false;
+                
+                if (method === 'vi') {
+                    is_converged = await valueIterationStep(isAuto);
+                } else {
+                    is_converged = await policyIterationStep(isAuto);
+                }
+                
+                if (is_converged) {
+                    if(isSolving) {
+                        isSolving = false;
+                        solveBtn.innerHTML = '<i class="fa-solid fa-check"></i> 求解完成';
+                        updateInfoEl.innerHTML = `<b>${methodSelect.options[methodSelect.selectedIndex].text} 已收敛！</b>`;
+                    }
+                } else {
+                    // Only increment iteration count if it's Value Iteration or a full PI step (after evaluation)
+                    if (method === 'vi' || pi_phase === 'evaluation') { // Increment after evaluation phase in PI
+                            iterationCount++;
+                    }
+                }
+
+                iterCountEl.textContent = iterationCount;
+                if (!isSolving) {
+                    iterateBtn.disabled = false;
+                    solveBtn.disabled = false;
+                }
+                return is_converged;
+            }
+            
+            function autoSolve() {
+                if(isSolving) return;
+                isSolving = true;
+                solveBtn.disabled = true;
+                iterateBtn.disabled = true;
+                solveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 求解中...';
+                
+                const solveLoop = async () => {
+                    const converged = await iterate(true);
+                    if (!converged && isSolving) {
+                       state.activeAnimationFrames.bellmanSolve = setTimeout(solveLoop, 50); // Continue solving
+                    }
+                };
+                solveLoop();
+            }
+            
+            // Displays detailed update info for a cell (used in auto-solve for VI)
+            function showUpdateInfo(x, y, newValue, bestActionIndex) {
+                const bestActionArrow = arrows[bestActionIndex];
+                // Calculate the expected future value part (gamma * max_Q)
+                const expectedFutureValue = ((newValue - getReward(x,y))/GAMMA).toFixed(2); 
+                updateInfoEl.innerHTML = `
+                    <div class='w-full text-left p-1'>
+                        <div class='font-bold'>V(s) at [${x},${y}]</div>
+                        <div>$V_{new} = R(s) + \\gamma \\max_a Q(s,a)$</div>
+                        <div><b>${newValue.toFixed(2)}</b> = ${getReward(x,y).toFixed(1)} + ${GAMMA} * <b>${expectedFutureValue}</b> (${bestActionArrow})</div>
+                    </div>`;
+                if(window.MathJax) MathJax.typesetPromise(); // Re-typeset MathJax for dynamic content
+            }
+
+            // Single step of Value Iteration
+            async function valueIterationStep(isAuto) {
+                let newValues = JSON.parse(JSON.stringify(values)); // Deep copy
+                let maxChange = 0;
+                for (let y = 0; y < GRID_SIZE; y++) {
+                    for (let x = 0; x < GRID_SIZE; x++) {
+                        sweepPos = {x, y}; // Highlight current cell
+                        if (isAuto) {
+                            drawGrid();
+                            await delay(25); // Small delay for visualization
+                        }
+
+                        if (isWall(x, y) || isTerminal(x, y)) continue; // Skip terminal and wall states
+                        
+                        const actionValues = getActionValues(x, y, values); // Get Q-values for all actions from current value function
+                        const bestValue = Math.max(...actionValues); // Max Q-value
+                        const bestActionIndex = actionValues.indexOf(bestValue); // Index of best action
+                        newValues[y][x] = getReward(x, y) + GAMMA * bestValue; // Bellman Optimality Equation
+                        
+                        if(isAuto) showUpdateInfo(x, y, newValues[y][x], bestActionIndex); // Show update details
+                        
+                        maxChange = Math.max(maxChange, Math.abs(newValues[y][x] - values[y][x]));
+                    }
+                }
+                values = newValues; // Update value function
+                updatePolicyBasedOnValues(); // Derive policy from new value function
+                if(!isAuto) updateInfoEl.innerHTML = `价值迭代 | 最大变化: ${maxChange.toFixed(5)}`;
+                sweepPos = null; // Clear sweep highlight
+                drawGrid();
+                return maxChange < convergence_threshold; // Check for convergence
+            }
+
+            // Single step of Policy Iteration (Evaluation + Improvement)
+            async function policyIterationStep(isAuto) {
+                if (pi_phase === 'evaluation') {
+                    // Policy Evaluation
+                    let eval_iter = 0;
+                    let maxChange;
+                    // Iterate until value function converges for the current policy
+                    do {
+                       maxChange = 0;
+                       for (let y = 0; y < GRID_SIZE; y++) {
+                           for (let x = 0; x < GRID_SIZE; x++) {
+                               sweepPos = {x,y};
+                               if (isAuto && eval_iter < 2) { // Only animate first few evaluation sweeps in auto mode
+                                   drawGrid();
+                                   await delay(25);
+                               }
+
+                               if (isWall(x, y) || isTerminal(x, y)) continue;
+                               const action = policy[y][x]; // Action dictated by current policy
+                               const [nx, ny] = getNextPos(x, y, action);
+                               const newValue = getReward(x,y) + GAMMA * values[ny][nx]; // Bellman Expectation Equation
+                               maxChange = Math.max(maxChange, Math.abs(newValue - values[y][x]));
+                               values[y][x] = newValue;
+                           }
+                       }
+                       eval_iter++;
+                    } while (maxChange > convergence_threshold && eval_iter < 10); // Limit evaluation iterations to prevent infinite loops for bad policies
+                    
+                    updateInfoEl.innerHTML = `<b>策略评估</b> 完成 | 迭代: ${eval_iter}`;
+                    pi_phase = 'improvement'; // Move to improvement phase
+                    drawGrid();
+                    if(isAuto) await delay(400); // Pause for clarity in auto mode
+
+                } else { // 'improvement' phase
+                    // Policy Improvement
+                    let policy_stable = true;
+                    for (let y = 0; y < GRID_SIZE; y++) {
+                        for (let x = 0; x < GRID_SIZE; x++) {
+                            sweepPos = {x, y};
+                            if (isAuto) {
+                                drawGrid();
+                                await delay(25);
+                            }
+                            if (isWall(x, y) || isTerminal(x, y)) continue;
+                            
+                            let old_action = policy[y][x];
+                            updatePolicyForCell(x,y); // Greedily update policy
+                            
+                            if (old_action !== policy[y][x]) {
+                                policy_stable = false; // Policy changed, not stable yet
+                            }
+                        }
+                    }
+                    updateInfoEl.innerHTML = `<b>策略提升</b> | 策略稳定: ${policy_stable}`;
+                    pi_phase = 'evaluation'; // Cycle back to evaluation
+                    if (policy_stable) return true; // Converged if policy is stable
+                }
+                updatePhaseDisplay();
+                sweepPos = null;
+                drawGrid();
+                return false; // Not converged yet
+            }
+            
+            // Calculates Q-values for all actions from a given state using a value function
+            function getActionValues(x, y, value_grid) {
+                return actions.map(action => {
+                    const [nx, ny] = getNextPos(x, y, actions.indexOf(action));
+                    return value_grid[ny][nx];
+                });
+            }
+
+            // Determines the next state given current state and action
+            function getNextPos(x, y, actionIndex) {
+                const [dx, dy] = actions[actionIndex];
+                let nx = x + dx, ny = y + dy;
+                // Boundary and wall checks: agent stays in place if it hits a wall or boundary
+                if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE || isWall(nx, ny)) {
+                    return [x, y];
+                }
+                return [nx, ny];
+            }
+            
+            // Updates the policy for a single cell greedily based on current value function
+            function updatePolicyForCell(x, y) {
+                const actionValues = getActionValues(x, y, values);
+                policy[y][x] = actionValues.indexOf(Math.max(...actionValues));
+            }
+
+            // Updates the entire policy based on the current value function
+            function updatePolicyBasedOnValues() {
+                for (let y = 0; y < GRID_SIZE; y++) {
+                    for (let x = 0; x < GRID_SIZE; x++) {
+                        if (isTerminal(x, y) || isWall(x, y)) continue;
+                        updatePolicyForCell(x, y);
+                    }
+                }
+            }
+
+            // Helper functions for grid properties
+            function isTerminal(x, y) { return (x === goal.x && y === goal.y) || traps.some(t => t.x === x && t.y === y); }
+            function isWall(x, y) { return walls.some(w => w.x === x && w.y === y); }
+            function getReward(x, y) {
+                if (x === goal.x && y === goal.y) return REWARDS.goal;
+                if (traps.some(t => t.x === x && t.y === y)) return REWARDS.trap;
+                return REWARDS.step;
+            }
+            function updatePhaseDisplay() { phaseInfoEl.textContent = methodSelect.value === 'pi' ? (pi_phase === 'evaluation' ? '评估中' : '提升中') : 'N/A'; }
+
+            // Draws the grid world
+            function drawGrid() {
+                const cellSize = canvas.width / GRID_SIZE;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const isDark = document.documentElement.classList.contains('dark');
+                
+                // Normalize values for heatmap coloring
+                const allValues = values.flat().filter(v => !isNaN(v));
+                const minVal = Math.min(...allValues, REWARDS.trap);
+                const maxVal = Math.max(...allValues, REWARDS.goal);
+
+                for (let y = 0; y < GRID_SIZE; y++) {
+                    for (let x = 0; x < GRID_SIZE; x++) {
+                        const val = values[y][x];
+                        
+                        // Cell background color based on value (heatmap)
+                        const heat = (val - minVal) / (maxVal - minVal) || 0;
+                        const r = Math.floor(255 * (1 - heat));
+                        const g = Math.floor(255 * heat);
+                        ctx.fillStyle = `rgb(${r}, ${g}, 100, 0.6)`;
+
+                        // Special colors for goal, traps, walls
+                        if (isWall(x, y)) ctx.fillStyle = '#555';
+                        else if (isTerminal(x,y)) ctx.fillStyle = (x === goal.x && y === goal.y) ? 'rgba(34, 197, 94, 0.7)' : 'rgba(239, 68, 68, 0.7)';
+                        
+                        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                        
+                        // Cell borders
+                        ctx.strokeStyle = isDark ? '#475569' : '#ccc';
+                        ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
+
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        
+                        // Display symbols or values/policy
+                        if (isTerminal(x,y) || isWall(x,y)) {
+                            ctx.font = `${cellSize*0.6}px sans-serif`;
+                            if(x === goal.x && y === goal.y) ctx.fillText('🏆', x*cellSize+cellSize/2, y*cellSize+cellSize/2);
+                            else if(isWall(x, y)) ctx.fillText('🧱', x*cellSize+cellSize/2, y*cellSize+cellSize/2);
+                            else ctx.fillText('☠️', x*cellSize+cellSize/2, y*cellSize+cellSize/2);
+                        } else {
+                            ctx.fillStyle = isDark ? '#f1f5f9' : '#1e293b';
+                            ctx.font = `bold ${cellSize*0.25}px sans-serif`;
+                            ctx.fillText(val.toFixed(1), x*cellSize+cellSize/2, y*cellSize+cellSize/4); // Value
+                            
+                            ctx.font = `${cellSize*0.4}px sans-serif`;
+                            ctx.fillText(arrows[policy[y][x]], x*cellSize+cellSize/2, y*cellSize+cellSize*0.7); // Policy arrow
+                        }
+                    }
+                }
+
+                // Highlight current sweep position
+                if (sweepPos) {
+                    ctx.strokeStyle = '#facc15';
+                    ctx.lineWidth = 4;
+                    ctx.strokeRect(sweepPos.x * cellSize + 2, sweepPos.y * cellSize + 2, cellSize - 4, cellSize - 4);
+                    ctx.lineWidth = 1; // Reset line width
+                }
+            }
+            
+            // Event listeners
+            iterateBtn.addEventListener('click', () => iterate(false));
+            solveBtn.addEventListener('click', autoSolve);
+            resetBtn.addEventListener('click', reset);
+            methodSelect.addEventListener('change', reset); // Reset when method changes
+            reset(); // Initial setup
+        }
+        
+        // Chapter 4: Actor-Critic Visualization
+        function initActorCriticViz() {
+            const container = document.getElementById('ac-diagram-container');
+            if (!container) return;
+            const playBtn = document.getElementById('play-ac-viz');
+            const explanationEl = document.getElementById('ac-viz-explanation');
+            renderAcDiagram(container); // Render the SVG diagram
+            const svgEl = container.querySelector('svg');
+            if (!svgEl) return;
+
+            // Select all relevant SVG elements for highlighting
+            const allElements = {
+                nodes: Array.from(svgEl.querySelectorAll(".ac-node")),
+                arrows: Array.from(svgEl.querySelectorAll(".ac-arrow")),
+                updateLabel: svgEl.querySelector("#label-update")
+            };
+
+            // Function to reset all highlights
+            function resetHighlights() {
+                allElements.nodes.forEach(el => el.classList.remove('highlight'));
+                allElements.arrows.forEach(el => {
+                    el.style.stroke = '#9ca3af'; // Default arrow color
+                    el.setAttribute('marker-end', 'url(#arrowhead)'); // Default arrowhead
+                });
+                if (allElements.updateLabel) allElements.updateLabel.style.fill = 'transparent'; // Hide update label
+                explanationEl.textContent = ""; // Clear explanation text
+            }
+
+            // Play button click handler
+            playBtn.addEventListener('click', () => {
+                if (playBtn.disabled) return; // Prevent multiple clicks
+                playBtn.disabled = true;
+                if(window.acAnimationTimeoutId) clearTimeout(window.acAnimationTimeoutId); // Clear any existing animation
+
+                let stepIndex = 0;
+                // Define animation steps with elements to highlight and explanation text
+                const steps = [
+                    { el: ["node-state"], text: "1. 智能体观察到当前状态 S" },
+                    { el: ["arrow-to-actor"], text: "2. 状态 S 被输入给演员 (Actor)" },
+                    { el: ["node-actor"], text: "3. 演员根据其策略 $\\pi(a|S)$，选择一个动作 A" },
+                    { el: ["arrow-to-action"], text: "4. 演员输出动作 A" },
+                    { el: ["node-action"], text: "5. 动作 A 施加于环境" },
+                    { el: ["arrow-to-env"], text: "6. 环境接收动作并发生状态转移" },
+                    { el: ["node-env"], text: "7. 环境返回新状态S'和奖励R" },
+                    { el: ["arrow-to-critic"], text: "8. (S, A, R, S') 被送往评论家进行评估" },
+                    { el: ["node-critic"], text: "9. 评论家计算优势函数 A(s,a)" },
+                    { el: ["arrow-critic-to-actor", "label-update"], text: "10. 优势函数 A(s,a) 指导演员更新" }
+                ];
+
+                function nextStep() {
+                    resetHighlights(); // Reset highlights from previous step
+                    if (stepIndex >= steps.length) {
+                        playBtn.disabled = false; // Re-enable button
+                        explanationEl.textContent = "流程结束。";
+                        if(window.MathJax) MathJax.typesetPromise();
+                        return;
+                    }
+
+                    const currentStep = steps[stepIndex];
+                    explanationEl.innerHTML = currentStep.text; // Update explanation
+                    if(window.MathJax) MathJax.typesetPromise(); // Render MathJax in explanation
+
+                    // Apply highlights for current step's elements
+                    currentStep.el.forEach(id => {
+                        const element = svgEl.querySelector(`#${id}`);
+                        if (element) {
+                            if (element.tagName.toLowerCase() === 'path') { // If it's an arrow
+                                element.style.stroke = '#f97316'; // Highlight color
+                                element.setAttribute('marker-end', 'url(#arrowhead-h)'); // Highlighted arrowhead
+                            } else if (id.includes('node')) { // If it's a node group
+                                element.classList.add('highlight');
+                            } else if (id === 'label-update') { // If it's the update label text
+                                element.style.fill = '#c2410c'; // Make text visible
+                            }
+                        }
+                    });
+
+                    stepIndex++;
+                    window.acAnimationTimeoutId = setTimeout(nextStep, 1800); // Schedule next step
+                }
+
+                resetHighlights(); // Initial reset before starting
+                nextStep(); // Start the animation
+            });
+        }
+
+        // Chapter 5: PPO Clipping Visualization
+        function initPpoCanvas() {
+            const canvas = document.getElementById('ppo-canvas'); 
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const toggleBtn = document.getElementById('ppo-toggle-advantage');
+            const explanationEl = document.getElementById('ppo-explanation');
+            const epsilonSlider = document.getElementById('epsilon-slider');
+            const epsilonValueEl = document.getElementById('epsilon-value');
+
+            let advantage = 1; // Start with positive advantage (good action)
+            let epsilon = 0.2; // Initial clipping value
+
+            function drawPpo(){
+                const w = canvas.width, h = canvas.height;
+                const isDark = document.documentElement.classList.contains('dark');
+                ctx.clearRect(0, 0, w, h);
+
+                // Draw axes
+                ctx.strokeStyle = isDark ? '#475569' : '#cbd5e1';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(0, h/2); ctx.lineTo(w, h/2); // Horizontal axis (L=0)
+                // Map r(theta) from [0.5, 2.0] to canvas width
+                const r1_x = w * (1 - 0.5) / 1.5; // Position of r(theta)=1
+                ctx.moveTo(r1_x, 0); ctx.lineTo(r1_x, h); // Vertical axis (r(theta)=1)
+                ctx.stroke();
+
+                // Axis labels
+                ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
+                ctx.font = "12px 'Noto Sans SC'";
+                ctx.fillText('r(θ)=1', r1_x - 10, h/2 + 15);
+                ctx.fillText('目标 L', w/2 - 20, 15);
+                ctx.fillText('概率比 r(θ)', w - 60, h/2 + 15);
+
+                // Draw clipping region background
+                ctx.fillStyle = 'rgba(79, 70, 229, 0.05)';
+                const clip_lower_x = w * (1 - epsilon - 0.5) / 1.5;
+                const clip_upper_x = w * (1 + epsilon - 0.5) / 1.5;
+                ctx.fillRect(clip_lower_x, 0, clip_upper_x - clip_lower_x, h);
+
+                // Draw clipping lines (dashed)
+                ctx.strokeStyle = '#fca5a5';
+                ctx.setLineDash([5, 5]);
+                ctx.lineWidth = 1.5;
+                const y_clip_upper = h/2 - 50 * (1 + epsilon) * advantage;
+                const y_clip_lower = h/2 - 50 * (1 - epsilon) * advantage;
+                ctx.beginPath(); ctx.moveTo(0, y_clip_upper); ctx.lineTo(w, y_clip_upper); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, y_clip_lower); ctx.lineTo(w, y_clip_lower); ctx.stroke();
+                ctx.setLineDash([]); // Reset line dash
+
+                // Draw PPO clipped objective function
+                ctx.strokeStyle = '#4f46e5';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                for (let i = 0; i <= w; i++) {
+                    // Map canvas x to probability ratio r(theta) in range [0.5, 2.0]
+                    const ratio = 0.5 + (i / w) * 1.5; 
+                    const y_unclipped = h/2 - 50 * ratio * advantage; // Unclipped objective
+                    const clipped_ratio = Math.max(1 - epsilon, Math.min(1 + epsilon, ratio)); // Clipped ratio
+                    const y_clipped = h/2 - 50 * clipped_ratio * advantage; // Clipped objective
+
+                    // Final objective is min(unclipped, clipped) for positive advantage, max for negative
+                    const y_final = (advantage > 0) ? Math.min(y_unclipped, y_clipped) : Math.max(y_unclipped, y_clipped);
+                    
+                    i === 0 ? ctx.moveTo(i, y_final) : ctx.lineTo(i, y_final);
+                }
+                ctx.stroke();
+
+                // Update explanation text based on advantage
+                if (advantage > 0) {
+                    explanationEl.innerHTML = '当优势 $\\hat{A}_t > 0$ (好动作)时，目标函数被 <span class="text-green-600 font-semibold">向上推动</span>，但被上限裁剪，防止策略过于激进。';
+                } else {
+                    explanationEl.innerHTML = '当优势 $\\hat{A}_t < 0$ (坏动作)时，目标函数被 <span class="text-red-600 font-semibold">向下拉动</span>，但被下限裁剪，防止策略更新过猛。';
+                }
+                if(window.MathJax) MathJax.typesetPromise();
+            }
+
+            // Event listeners
+            toggleBtn.addEventListener('click', () => {
+                advantage *= -1; // Toggle advantage sign
+                toggleBtn.innerHTML = advantage > 0 ? '切换到 "坏动作" ($\\hat{A}_t < 0$)' : '切换到 "好动作" ($\\hat{A}_t > 0$)';
+                if(window.MathJax) MathJax.typesetPromise();
+                drawPpo();
+            });
+
+            epsilonSlider.addEventListener('input', (e) => {
+                epsilon = parseFloat(e.target.value);
+                epsilonValueEl.textContent = epsilon.toFixed(2);
+                drawPpo();
+            });
+
+            drawPpo(); // Initial draw
+        }
+
+        // Chapter 6: SAC Entropy Regularization Visualization
+        function initSacCanvas() {
+            const sacCanvas = document.getElementById('sac-canvas'); 
+            if (!sacCanvas) return;
+            const sacCtx = sacCanvas.getContext('2d');
+            const slider = document.getElementById('alpha-slider');
+            const valueDisp = document.getElementById('alpha-value');
+            const explanationEl = document.getElementById('sac-explanation');
+            let alpha = 0.2; // Initial alpha value
+
+            // Update alpha value from slider
+            slider.addEventListener('input', (e) => {
+                alpha = parseFloat(e.target.value);
+                valueDisp.textContent = alpha.toFixed(2);
+            });
+
+            // A simple reward landscape function (e.g., a bumpy surface)
+            const rewardLandscape = (x_norm) => Math.sin(x_norm * 2 * Math.PI) * 0.5 + Math.cos(x_norm * 3 * Math.PI) * 0.3;
+            let animationTime = 0; // For animating the policy distribution
+
+            function drawSac() {
+                // Stop drawing if canvas element is no longer in DOM
+                if (!document.getElementById('sac-canvas')) {
+                    if (window.activeAnimationFrames.sac) cancelAnimationFrame(window.activeAnimationFrames.sac);
+                    return;
+                }
+
+                const w = sacCanvas.width, h = sacCanvas.height;
+                sacCtx.clearRect(0, 0, w, h);
+
+                // Draw reward landscape (dashed line)
+                sacCtx.beginPath();
+                sacCtx.strokeStyle = 'rgba(100, 116, 139, 0.4)';
+                sacCtx.lineWidth = 2;
+                sacCtx.setLineDash([2, 3]);
+                for (let x = 0; x <= w; x++) {
+                    const y = h/2 - rewardLandscape(x / w) * h/3; // Scale reward to canvas height
+                    x === 0 ? sacCtx.moveTo(x, y) : sacCtx.lineTo(x, y);
+                }
+                sacCtx.stroke();
+                sacCtx.setLineDash([]); // Reset line dash
+
+                // Draw policy distribution (filled area)
+                sacCtx.beginPath();
+                sacCtx.fillStyle = 'rgba(79, 70, 229, 0.5)'; // Blue fill for policy
+                
+                // std_dev controls the width of the Gaussian, scaled by alpha
+                const std_dev = 0.05 + alpha * 0.4; 
+                animationTime += 0.005; // Animate the mean of the policy for visual interest
+                const mean = w / 2 + Math.sin(animationTime) * w/3; // Oscillating mean
+
+                sacCtx.moveTo(0, h); // Start from bottom-left
+                for (let x = 0; x <= w; x++) {
+                    // Gaussian (normal distribution) shape for the policy
+                    const y = Math.exp(-0.5 * Math.pow(((x - mean) / (w/4)) / std_dev, 2)) * (h - 20); // Scale to canvas height
+                    sacCtx.lineTo(x, h - y); // Draw the top curve of the distribution
+                }
+                sacCtx.lineTo(w, h); // Draw to bottom-right
+                sacCtx.closePath();
+                sacCtx.fill();
+
+                // Update explanation text based on alpha value
+                if (alpha > 0.6) explanationEl.textContent = '高 α: 策略非常平坦, 熵奖励主导, 智能体积极探索。';
+                else if (alpha < 0.1) explanationEl.textContent = '低 α: 策略非常尖锐, 任务奖励主导, 智能体积极利用。';
+                else explanationEl.textContent = 'α 适中: 在探索与利用之间取得良好平衡。';
+
+                // Request next animation frame
+                window.activeAnimationFrames.sac = requestAnimationFrame(drawSac);
+            }
+
+            drawSac(); // Start the animation
+        }
+
+        // Quiz 1 Logic
+        function initQuiz() {
+            const quizContainer = document.getElementById('quiz-container');
+            if(!quizContainer) return;
+            const quizData = [
+                {
+                    question: "哪种算法是 On-Policy (同策略) 的？",
+                    answers: ["DQN", "SAC", "PPO", "DDPG"],
+                    correct: "PPO"
+                },
+                {
+                    question: "DQN 使用哪项关键技术来打破数据相关性？",
+                    answers: ["目标网络", "经验回放", "优势函数", "熵正则化"],
+                    correct: "经验回放"
+                },
+                {
+                    question: "SAC 算法的目标函数中，除了最大化奖励，还最大化什么？",
+                    answers: ["策略的确定性", "价值函数", "策略的熵 (随机性)", "动作数量"],
+                    correct: "策略的熵 (随机性)"
+                },
+                {
+                    question: "PPO算法中的\"裁剪(Clipping)\"主要是为了解决什么问题?",
+                    answers: ["提升探索效率", "限制策略更新步长，增加稳定性", "减少计算量", "处理连续动作空间"],
+                    correct: "限制策略更新步长，增加稳定性"
+                }
+            ];
+            quizContainer.innerHTML = `
+                ${quizData.map((q, i) => `
+                    <div class="mb-6 quiz-item" id="q-${i}">
+                        <p class="font-bold mb-2">${i+1}. ${q.question}</p>
+                        <div class="space-y-2">
+                            ${q.answers.map(a => `<label class="block p-3 border border-themed rounded-lg hover:bg-themed-muted cursor-pointer transition-colors"><input type="radio" name="q${i}" value="${a}" class="mr-3 accent-accent-color">${a}</label>`).join('')}
+                        </div>
+                        <p class="text-sm mt-2 font-bold hidden quiz-feedback p-2 rounded-md"></p>
+                    </div>
+                `).join('')}
+                <div class="flex items-center gap-4 mt-8">
+                    <button id="submit-quiz" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition-colors">提交答案</button>
+                    <div id="quiz-final-score" class="font-bold text-lg"></div>
+                </div>
+            `;
+
+            document.getElementById('submit-quiz').addEventListener('click', () => {
+                let score = 0;
+                quizData.forEach((q, i) => {
+                    const selected = quizContainer.querySelector(`input[name="q${i}"]:checked`);
+                    const feedback = quizContainer.querySelector(`#q-${i} .quiz-feedback`);
+                    feedback.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700');
+                    if (selected) {
+                        if (selected.value === q.correct) {
+                            feedback.textContent = `回答正确！`;
+                            feedback.classList.add('bg-green-100', 'text-green-700');
+                            score++;
+                        } else {
+                            feedback.textContent = `回答错误。正确答案是: ${q.correct}`;
+                            feedback.classList.add('bg-red-100', 'text-red-700');
+                        }
+                    } else {
+                        feedback.textContent = '您未选择答案。';
+                        feedback.classList.add('bg-red-100', 'text-red-700');
+                    }
+                    feedback.classList.remove('hidden');
+                });
+                const finalScoreEl = document.getElementById('quiz-final-score');
+                finalScoreEl.textContent = `您的得分: ${score} / ${quizData.length}`;
+            });
+        }
+
+        // Chapter 7: CMDP Builder Lab
+        function initCmdpLab() {
+            const builderPanel = document.getElementById('cmdp-builder-panel');
+            if (!builderPanel) return;
+            const checkboxes = builderPanel.querySelectorAll('.cmdp-checkbox');
+            const controls = { air: document.getElementById('air-slider-ch7'), tilt: document.getElementById('tilt-slider-ch7'), ofa: document.getElementById('ofa-slider-ch7') };
+            const valueLabels = { air: document.getElementById('air-value-ch7'), tilt: document.getElementById('tilt-value-ch7'), ofa: document.getElementById('ofa-value-ch7') };
+            const visuals = { flame: document.getElementById('flame-visual-ch7'), noxFill: document.getElementById('nox-meter-fill-ch7'), coFill: document.getElementById('co-meter-fill-ch7'), tempFill: document.getElementById('temp-meter-fill-ch7'), efficiency: document.getElementById('efficiency-value-ch7') };
+            
+            // Simulates boiler behavior based on control inputs
+            function updateSimulation() {
+                if (!controls.air || !controls.tilt || !controls.ofa) return; // Ensure elements exist
+                const air = parseFloat(controls.air.value);
+                const tilt = parseFloat(controls.tilt.value);
+                const ofa = parseFloat(controls.ofa.value);
+                
+                // Update slider value displays
+                if (valueLabels.air) valueLabels.air.textContent = air.toFixed(0);
+                if (valueLabels.tilt) valueLabels.tilt.textContent = tilt.toFixed(0);
+                if (valueLabels.ofa) valueLabels.ofa.textContent = ofa.toFixed(0);
+
+                // Simplified boiler model to calculate outputs
+                let nox = 1.1 * air - 1.6 * ofa + 0.4 * Math.abs(tilt);
+                let co = 140 - air + 0.5 * Math.abs(air - 80);
+                let temp = 60 + (air - 75) + Math.abs(tilt); // Example: higher air/tilt increases temp
+                let efficiency = 91.5 + (1 - Math.abs(air - 85) / 50) * 1.5 + (1 - Math.abs(ofa - 35) / 40) * 1 - (co / 100);
+
+                // Clamp values to realistic ranges
+                nox = Math.max(10, Math.min(100, nox));
+                co = Math.max(5, Math.min(100, co));
+                temp = Math.max(20, Math.min(100, temp));
+                efficiency = Math.max(90, Math.min(94, efficiency));
+
+                // Update visual elements
+                if (visuals.flame) {
+                    visuals.flame.style.height = `${30 + (air / 100) * 70}%`;
+                    visuals.flame.style.transform = `translateY(${tilt * -1.5}px) skewX(${tilt * -0.5}deg)`;
+                }
+                if (visuals.noxFill) visuals.noxFill.style.width = `${nox}%`;
+                if (visuals.coFill) visuals.coFill.style.width = `${co}%`;
+                if (visuals.tempFill) visuals.tempFill.style.width = `${temp}%`;
+                if (visuals.efficiency) visuals.efficiency.textContent = efficiency.toFixed(2);
+            }
+
+            // Updates the UI based on checkbox selections (visibility and highlights)
+            function updateUI() {
+                const summary = { State: [], Action: [], Reward: [], Cost: [] };
+                checkboxes.forEach(cb => {
+                    const targetEl = document.getElementById(cb.dataset.target);
+                    if (!targetEl) return;
+
+                    // Toggle visibility based on checkbox state
+                    targetEl.classList.toggle('hidden', !cb.checked);
+                    // Remove previous highlights
+                    targetEl.classList.remove('reward-highlight', 'cost-highlight');
+
+                    if (cb.checked) {
+                        const label = cb.parentElement.textContent.trim();
+                        const header = cb.closest('div.space-y-2').previousElementSibling.textContent;
+
+                        // Populate summary lists and apply highlights
+                        if (header.includes('状态')) summary.State.push(label);
+                        else if (header.includes('动作')) summary.Action.push(label);
+                        else if (header.includes('奖励')) {
+                            summary.Reward.push(label.replace('奖励：', '').trim());
+                            targetEl.classList.add('reward-highlight');
+                        }
+                        else if (header.includes('成本')) {
+                            summary.Cost.push(label.replace('约束：', '').trim());
+                            targetEl.classList.add('cost-highlight');
+                        }
+                    }
+                });
+
+                // Render summary lists
+                const renderList = (key) => {
+                    const el = document.getElementById(`summary-${key}-ch7`);
+                    if(el) el.innerHTML = summary[key].length ? summary[key].map(item => `<li>${item}</li>`).join('') : '<li>未选</li>';
+                }
+                ['State', 'Action', 'Reward', 'Cost'].forEach(renderList);
+            }
+
+            // Add event listeners
+            checkboxes.forEach(cb => cb.addEventListener('change', updateUI));
+            Object.values(controls).forEach(slider => { if(slider) slider.addEventListener('input', updateSimulation); });
+            
+            // Initial updates
+            updateUI();
+            updateSimulation();
+        }
+
+        // Chapter 8: Sim-to-Real Gap Visualization
+        function initSimRealCanvas() {
+            const canvas = document.getElementById('sim-real-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const slider = document.getElementById('model-quality-slider');
+            const valueDisp = document.getElementById('model-quality-value');
+            let quality = 50; // Initial model quality
+
+            if (slider) slider.oninput = (e) => {
+                quality = parseInt(e.target.value);
+                if (valueDisp) valueDisp.textContent = quality;
+            };
+
+            let time = 0; // For animating the waves
+            const draw = () => {
+                // Stop animation if canvas element is no longer in DOM
+                if(!document.getElementById('sim-real-canvas')) {
+                    if(window.activeAnimationFrames.simReal) cancelAnimationFrame(window.activeAnimationFrames.simReal);
+                    return;
+                }
+
+                const w = canvas.width, h = canvas.height;
+                const isDark = document.documentElement.classList.contains('dark');
+                ctx.clearRect(0, 0, w, h);
+                time += 0.01; // Advance animation time
+
+                // Draw "Real World" line (solid, dark)
+                ctx.beginPath(); 
+                ctx.strokeStyle = isDark ? '#f1f5f9' : '#1e293b'; 
+                ctx.lineWidth = 3;
+                for (let x = 0; x < w; x++) {
+                    // Complex sine wave for "real world" signal
+                    const y = h / 2 + Math.sin(x * 0.03 + time) * h / 6 + Math.cos(x * 0.07 + time) * h / 8;
+                    x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+
+                // Draw "Simulated Model" line (dashed, blue)
+                ctx.beginPath(); 
+                ctx.strokeStyle = '#3b82f6'; 
+                ctx.lineWidth = 2; 
+                ctx.setLineDash([5, 5]); // Dashed line
+                
+                // Noise amplitude based on model quality (lower quality = more noise)
+                const noise_amplitude = (100 - quality) / 100 * h / 3; 
+                for (let x = 0; x < w; x++) {
+                    const real_y = h / 2 + Math.sin(x * 0.03 + time) * h / 6 + Math.cos(x * 0.07 + time) * h / 8;
+                    // Add random noise to simulate model inaccuracy
+                    const sim_y = real_y + (Math.random() - 0.5) * noise_amplitude;
+                    x === 0 ? ctx.moveTo(x, sim_y) : ctx.lineTo(x, sim_y);
+                }
+                ctx.stroke();
+                ctx.setLineDash([]); // Reset line dash
+
+                // Request next animation frame
+                window.activeAnimationFrames.simReal = requestAnimationFrame(draw);
+            };
+            draw(); // Start the animation
+        }
+
+        // Chapter 9: RL Training Lab (Q-Learning Grid World)
+        function initRlTrainingLab() {
+            const canvas = document.getElementById('rl-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const chartCtx = document.getElementById('rewardChart')?.getContext('2d');
+            if (!chartCtx) return; // Ensure chart canvas exists
+            const startBtn = document.getElementById('start-sim');
+
+            const GRID_SIZE = 8;
+            const GOAL = { x: GRID_SIZE - 1, y: GRID_SIZE - 1 };
+            const TRAPS = [{x: 2,y: 2},{x: 2,y: 3},{x: 3,y: 2},{x: 5,y: 5},{x: 6,y: 5}];
+            let agent = { x: 0, y: 0, visualX: 0, visualY: 0 }; // Agent position and smooth visual position
+            let q_table, episode, totalReward, rewardHistory, rewardChart, simParams, isTraining, isVisualizing;
+
+            const sliders = { gamma: document.getElementById('gamma-slider'), lr: document.getElementById('lr-slider'), epsilon: document.getElementById('epsilon-slider-ch9') };
+            const valueLabels = { gamma: document.getElementById('gamma-value'), lr: document.getElementById('lr-value'), epsilon: document.getElementById('epsilon-value-ch9') };
+            
+            // Reads slider values and updates display
+            function setupParams() {
+                simParams = { gamma: parseFloat(sliders.gamma.value), lr: parseFloat(sliders.lr.value), epsilon: parseFloat(sliders.epsilon.value) };
+                valueLabels.gamma.textContent = simParams.gamma.toFixed(2);
+                valueLabels.lr.textContent = simParams.lr.toFixed(2);
+                valueLabels.epsilon.textContent = simParams.epsilon.toFixed(2);
+            }
+
+            // Resets the entire simulation state
+            function resetSimulation() {
+                // Clear any running intervals/animations
+                if (window.rlSimulationIntervalId) clearInterval(window.rlSimulationIntervalId);
+                if (window.rlAgentIntervalId) clearInterval(window.rlAgentIntervalId);
+                if (state.activeAnimationFrames.agent) cancelAnimationFrame(state.activeAnimationFrames.agent);
+                state.activeAnimationFrames.agent = null;
+                
+                isTraining = false;
+                isVisualizing = false;
+                
+                // Adjust canvas size to fit container
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+
+                // Initialize Q-table with zeros (State x Action space)
+                q_table = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0).map(() => [0, 0, 0, 0])); // Actions: R, D, L, U
+                episode = 0;
+                totalReward = 0;
+                rewardHistory = [];
+                
+                setupParams(); // Load initial parameters from sliders
+                resetChart(); // Reset reward chart
+                updateCounters(); // Update episode/reward display
+                
+                startBtn.disabled = false;
+                startBtn.innerHTML = '开始训练';
+                startBtn.onclick = startTraining; // Set button to start training
+
+                agent = { x: 0, y: 0, visualX: 0, visualY: 0 }; // Reset agent position
+                drawGrid(); // Initial grid draw
+            }
+
+            // Starts the training loop
+            function startTraining() {
+                if (isTraining) return;
+                isTraining = true;
+                startBtn.disabled = true;
+                startBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 训练中...';
+                // Run training episodes in batches for smoother UI
+                window.rlSimulationIntervalId = setInterval(runTrainingBatch, 50); 
+            }
+
+            // Runs a batch of Q-learning episodes
+            function runTrainingBatch() {
+                if (episode >= 1000) { // Stop training after 1000 episodes
+                    clearInterval(window.rlSimulationIntervalId); 
+                    isTraining = false;
+                    startBtn.innerHTML = '可视化最终策略';
+                    startBtn.disabled = false;
+                    startBtn.onclick = () => runAgentVisualization(true); // Change button to visualize
+                    return; 
+                }
+
+                for(let i=0; i < 10; i++) { // Run 10 episodes per batch
+                    let current_agent = { x: 0, y: 0 }; // Reset agent for each episode
+                    let episodeReward = 0, done = false, steps = 0;
+                    while (!done && steps < 50) { // Max 50 steps per episode
+                        const state = { x: current_agent.x, y: current_agent.y };
+                        const action = chooseAction(state, simParams.epsilon); // Epsilon-greedy action selection
+                        const nextState = getNextState(state, action);
+                        const reward = getReward(nextState);
+
+                        // Q-learning update rule
+                        const old_q = q_table[state.y][state.x][action];
+                        const next_max_q = Math.max(...q_table[nextState.y][nextState.x]);
+                        q_table[state.y][state.x][action] = old_q + simParams.lr * (reward + simParams.gamma * next_max_q - old_q);
+                        
+                        current_agent = nextState;
+                        episodeReward += reward;
+                        steps++;
+                        done = isTerminal(nextState);
+                    }
+                    episode++;
+                    rewardHistory.push(episodeReward);
+                }
+                
+                updateChart(); // Update reward chart
+                updateCounters(); // Update episode/reward display
+                if (!isVisualizing) {
+                    drawGrid(); // Redraw grid with updated Q-values
+                }
+            }
+
+            // Runs a single agent visualization episode
+            function runAgentVisualization(isFinalPolicy = false) {
+                if (isVisualizing) return;
+                isVisualizing = true;
+                startBtn.disabled = true;
+
+                agent = { x: 0, y: 0, visualX: 0, visualY: 0 }; // Reset agent position
+                drawGrid(); // Initial draw with agent at start
+                
+                let steps = 0;
+                window.rlAgentIntervalId = setInterval(() => {
+                    if (isTerminal(agent) || steps > 50) { // Stop if terminal state reached or max steps
+                        clearInterval(window.rlAgentIntervalId);
+                        isVisualizing = false;
+                        startBtn.disabled = false;
+                        if(isFinalPolicy) startBtn.innerHTML = '重新可视化';
+                        return;
+                    }
+
+                    // Choose action (greedy if visualizing final policy, else epsilon-greedy)
+                    const action = chooseAction(agent, isFinalPolicy ? 0.0 : simParams.epsilon);
+                    const nextState = getNextState(agent, action);
+                    agent.x = nextState.x; // Update agent's true position
+                    agent.y = nextState.y;
+                    steps++;
+                    
+                    // Start smooth animation if not already running
+                    if (!state.activeAnimationFrames.agent) {
+                        animateAgentPosition();
+                    }
+                }, 300); // Agent moves every 300ms
+            }
+
+            // Smoothly animates agent's visual position
+            function animateAgentPosition() {
+                const dx = agent.x - agent.visualX;
+                const dy = agent.y - agent.visualY;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+
+                if (dist > 0.01) { // If not very close to target
+                    agent.visualX += dx * 0.2; // Move 20% of the remaining distance
+                    agent.visualY += dy * 0.2;
+                    drawGrid(); // Redraw grid with new visual position
+                    state.activeAnimationFrames.agent = requestAnimationFrame(animateAgentPosition);
+                } else {
+                    // Snap to exact position and stop animation
+                    agent.visualX = agent.x;
+                    agent.visualY = agent.y;
+                    drawGrid();
+                    state.activeAnimationFrames.agent = null;
+                }
+            }
+
+            // Draws the grid, Q-value heatmap, and agent
+            function drawGrid() {
+                const cellSize = canvas.width / GRID_SIZE;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const isDark = document.documentElement.classList.contains('dark');
+
+                // Normalize Q-values for heatmap coloring
+                const all_q_values = q_table.flat(2).filter(q => !isNaN(q));
+                const min_q = Math.min(...all_q_values, -1); // Ensure min/max are not zero if all Q-values are initially zero
+                const max_q = Math.max(...all_q_values, 1);
+
+                for (let y = 0; y < GRID_SIZE; y++) {
+                    for (let x = 0; x < GRID_SIZE; x++) {
+                        // Draw cell background
+                        ctx.fillStyle = isDark ? '#334155' : '#f1f5f9'; // Default cell color
+                        if(TRAPS.some(t => t.x === x && t.y === y)) ctx.fillStyle = isDark ? '#7f1d1d' : '#fee2e2'; // Trap color
+                        if(GOAL.x === x && GOAL.y === y) ctx.fillStyle = isDark ? '#065f46' : '#dcfce7'; // Goal color
+                        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+
+                        // Draw Q-value triangles (if not terminal state)
+                        if (!isTerminal({x,y})) {
+                            const q_values = q_table[y][x]; // Q-values for actions: R, D, L, U
+                            // Define coordinates for 4 triangles (representing 4 actions)
+                            const triangleCoords = [
+                                [[1, 0.5], [0.5, 0], [0.5, 1]],    // Right (0)
+                                [[0.5, 1], [0, 0.5], [1, 0.5]],    // Down (1)
+                                [[0, 0.5], [0.5, 0], [0.5, 1]],    // Left (2)
+                                [[0.5, 0], [0, 0.5], [1, 0.5]],    // Up (3)
+                            ];
+
+                            for (let i = 0; i < 4; i++) {
+                                // Color based on normalized Q-value (heatmap)
+                                const heat = (q_values[i] - min_q) / (max_q - min_q) || 0;
+                                const r = Math.floor(255 * (1 - heat));
+                                const g = Math.floor(255 * heat);
+                                ctx.fillStyle = `rgba(${r}, ${g}, 100, 0.7)`; // RGBA for transparency
+
+                                ctx.beginPath();
+                                const start = triangleCoords[i][0];
+                                ctx.moveTo(x * cellSize + start[0] * cellSize, y * cellSize + start[1] * cellSize);
+                                for (let j = 1; j < 3; j++) {
+                                    const point = triangleCoords[i][j];
+                                    ctx.lineTo(x * cellSize + point[0] * cellSize, y * cellSize + point[1] * cellSize);
+                                }
+                                ctx.closePath();
+                                ctx.fill();
+                            }
+                        }
+                        
+                        // Draw cell borders
+                        ctx.strokeStyle = isDark ? 'rgba(100, 116, 139, 0.5)' : '#e2e8f0';
+                        ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                    }
+                }
+
+                // Draw special symbols (Start, Goal, Traps)
+                ctx.font = `${cellSize * 0.6}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('S', cellSize / 2, cellSize / 2); // Start
+                ctx.fillText('🏆', GOAL.x * cellSize + cellSize / 2, GOAL.y * cellSize + cellSize / 2); // Goal
+                TRAPS.forEach(t => ctx.fillText('☠️', t.x * cellSize + cellSize / 2, t.y * cellSize + cellSize / 2)); // Traps
+                
+                // Draw agent
+                if(agent) {
+                    const centerX = (agent.visualX + 0.5) * cellSize;
+                    const centerY = (agent.visualY + 0.5) * cellSize;
+                    const radius = cellSize * 0.35;
+                    ctx.beginPath();
+                    ctx.fillStyle = '#3b82f6'; // Agent color
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 2;
+                    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                }
+            }
+
+            // Epsilon-greedy action selection
+            function chooseAction(state, currentEpsilon) {
+                if (Math.random() < currentEpsilon) {
+                    return Math.floor(Math.random() * 4); // Random action (explore)
+                }
+                const q_vals = q_table[state.y][state.x];
+                const max_q = Math.max(...q_vals);
+                // Find all actions with max Q-value to break ties randomly
+                const best_actions = q_vals.map((q,i) => q === max_q ? i : -1).filter(i => i !== -1);
+                return best_actions[Math.floor(Math.random() * best_actions.length)]; // Greedy action (exploit)
+            }
+
+            // Determines next state given current state and action (simple grid movement)
+            function getNextState({x,y}, action) {
+                if (action === 0) x = Math.min(GRID_SIZE - 1, x + 1); // Right
+                else if (action === 1) y = Math.min(GRID_SIZE - 1, y + 1); // Down
+                else if (action === 2) x = Math.max(0, x - 1); // Left
+                else if (action === 3) y = Math.max(0, y - 1); // Up
+                return { x, y };
+            }
+
+            // Defines reward for each state
+            function getReward(state) {
+                if (state.x === GOAL.x && state.y === GOAL.y) return 100; // Goal reward
+                if (TRAPS.some(t => t.x === state.x && t.y === state.y)) return -100; // Trap penalty
+                return -1; // Step penalty
+            }
+
+            // Checks if a state is terminal (goal or trap)
+            function isTerminal(state) { return (state.x === GOAL.x && state.y === GOAL.y) || TRAPS.some(t => t.x === state.x && t.y === state.y); }
+            
+            // Initializes the reward chart
+            function resetChart() {
+                if (rewardChart) rewardChart.destroy();
+                const isDark = document.documentElement.classList.contains('dark');
+                const textColor = isDark ? '#94a3b8' : '#475569';
+                const gridColor = isDark ? 'rgba(148, 163, 184, 0.2)' : 'rgba(0, 0, 0, 0.1)';
+                window.rewardChart = new Chart(chartCtx, {
+                    type: 'line',
+                    data: { labels: [], datasets: [{ label: '最近50回合平均奖励', data: [], borderColor: '#16a34a', tension: 0.2, pointRadius: 0, fill: true, backgroundColor: 'rgba(22, 163, 74, 0.1)' }] },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        scales: { 
+                            x: { display: false }, 
+                            y: { title: { display: true, text: '奖励', color: textColor }, grid: { color: gridColor }, ticks: { color: textColor } } 
+                        }, 
+                        plugins: { legend: { display: false } } 
+                    }
+                });
+            }
+
+            // Updates the reward chart data
+            function updateChart() {
+                if (!rewardChart || episode % 20 !== 0) return; // Update every 20 episodes
+                const recentRewards = rewardHistory.slice(-50); // Average over last 50 episodes
+                totalReward = recentRewards.reduce((a, b) => a + b, 0) / recentRewards.length;
+                rewardChart.data.labels.push(episode);
+                rewardChart.data.datasets[0].data.push(totalReward);
+                if (rewardChart.data.labels.length > 50) { // Keep only last 50 points
+                    rewardChart.data.labels.shift();
+                    rewardChart.data.datasets[0].data.shift();
+                }
+                rewardChart.update('none'); // 'none' for no animation on update
+            }
+
+            // Updates episode and reward counters
+            function updateCounters() {
+                document.getElementById('episode-counter').textContent = episode;
+                document.getElementById('total-reward').textContent = totalReward.toFixed(2);
+            }
+
+            // Event listeners
+            startBtn.addEventListener('click', resetSimulation); // Button starts/resets simulation
+            Object.values(sliders).forEach(slider => slider.addEventListener('input', setupParams)); // Update params on slider change
+            
+            resetSimulation(); // Initial setup
+        }
+
+        // Chapter 10: Three-Stage Deployment Logic
+        // This function is called directly from the HTML onclick attributes
+        function selectStep(step) {
+            const contentEl = document.getElementById('step-content');
+            if (!contentEl) return;
+            const content = {
+                1: { title: "阶段一：建议模式 (Advisory Mode)", description: 'RL智能体以"影子模式"运行，实时接收电厂数据并计算最优动作。但这些动作并<strong>不</strong>直接执行，而是作为操作建议显示在操作员站的界面上，由经验丰富的人工操作员确认后执行。', goals: ["在零风险下验证AI策略的长期性能。", "让操作员逐步熟悉和信任AI的决策逻辑。", "收集对比数据，量化AI相比纯人工操作的具体提升。"], risk_mitigation: "操作员拥有100%的最终控制权，AI无任何物理执行能力，实现绝对安全。" },
+                2: { title: "阶段二：监督控制 (Supervisory Control)", description: 'AI的输出不再是直接的阀门动作，而是调整DCS中现有PID控制回路的<strong>设定值</strong>。例如，AI决定将"总风量PID"的目标值从50%调整到55%。', goals: ["在不改变底层可靠控制结构的前提下，实现更高层级的优化。", "利用现有DCS系统的稳定性和安全联锁作为底层安全网。", "在真实的闭环反馈下对模型进行在线微调。"], risk_mitigation: "智能体的作用范围被限制在高层设定值，底层的快速调节和安全保护仍由久经考验的PID系统完成，极大降低了风险。" },
+                3: { title: "阶段三：直接控制 (Direct Control)", description: 'AI获得对执行机构的直接控制权。但其输出的所有指令在发送给DCS之前，必须强制通过一个最终的、硬编码的<strong>安全层 (Safety Layer)</strong>。', goals: ["实现完全的自主优化，对工况变化做出最快速、最直接的响应。", "最大化RL策略的性能。"], risk_mitigation: '"安全层"是一个非AI的、基于简单规则的程序。它会检查AI的每一个指令，并立即否决任何可能违反硬性安全约束的动作。这是对抗AI不可预见行为的最后一道防线。' }
+            };
+            // Highlight the active step
+            for (let i = 1; i <= 3; i++) document.getElementById(`step${i}`)?.classList.toggle('active', i === step);
+            const selectedContent = content[step];
+            if (selectedContent) {
+                // Populate the content area with details for the selected step
+                contentEl.innerHTML = `<h3 class="text-xl font-bold mt-0 mb-4">${selectedContent.title}</h3><p class="text-themed-secondary mb-4">${selectedContent.description}</p><h4 class="font-bold text-lg mb-2">主要目标:</h4><ul class="list-disc list-inside space-y-1 text-themed-secondary mb-4">${selectedContent.goals.map(g => `<li>${g}</li>`).join('')}</ul><h4 class="font-bold text-lg mb-2">风险控制:</h4><p class="p-3 bg-green-500/10 border border-green-500/20 text-green-700 dark:text-green-300 rounded-lg">${selectedContent.risk_mitigation}</p>`;
+            }
+        }
+
+        // Chapter 1: Boiler Diagram SVG
+        function renderBoilerDiagram() {
+            const container = document.getElementById('boiler-diagram-container');
+            if (!container) return;
+            container.innerHTML = `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><style>.txt{font-size:8px; font-family: 'Noto Sans SC', sans-serif; text-anchor: middle; fill: var(--text-secondary);} .line{stroke: var(--text-secondary); fill: none;} .arr{marker-end: url(#arrow); stroke-width: 0.8; stroke: var(--text-secondary); fill: none;}</style><defs><marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--text-secondary)"/></marker></defs><rect x="100" y="20" width="100" height="160" fill="var(--bg-muted)" stroke="var(--border-color)" stroke-width="1.5"/><text x="150" y="15" class="txt">锅炉</text><path d="M120,20 v-10 h60 v10" class="line" stroke-width="1.5"/><path d="M145,10 v-5 h10 v5" class="line" stroke-width="1.5"/><text x="150" y="7" class="txt" fill="#c2410c">过热蒸汽</text><rect x="110" y="100" width="80" height="40" fill="#fef9c3" stroke="#facc15" /><text x="150" y="125" class="txt">燃烧区</text><path d="M100,140 h-20 v-10 h20" class="arr" /><text x="65" y="135" class="txt">燃料+空气</text><path d="M200,160 h20 v-10 h-20" class="arr" /><text x="225" y="155" class="txt">灰渣</text><rect x="230" y="60" width="50" height="80" fill="#dbeafe" stroke="#60a5fa" stroke-width="1"/><text x="255" y="55" class="txt">汽轮机</text><path d="M150,25 h80 v40" class="arr" /><rect x="230" y="150" width="50" height="30" fill="#e0f2fe" stroke="#38bdf8" stroke-width="1"/><text x="255" y="145" class="txt">冷凝器</text><path d="M255,140 v-35" class="arr" /><rect x="40" y="160" width="50" height="20" fill="#dcfce7" stroke="#4ade80" stroke-width="1"/><text x="65" y="155" class="txt">给水泵</text><path d="M255,180 h-190 v-15" class="arr" /><path d="M40,170 h-10 v-20 h80" class="arr" /></svg>`;
+        }
+
+        // Chapter 1: Rankine Diagram SVG
+        function renderRankineDiagram() {
+            const container = document.getElementById('rankine-diagram-container');
+            if (!container) return;
+            container.innerHTML = `<svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg"><style>.txt{font-size:7px; font-family: 'Noto Sans SC', sans-serif; fill: var(--text-primary);} .lbl{font-size:6px; fill: var(--text-secondary);} .line{stroke-width:1; stroke:var(--text-secondary); fill:none;} .cycle{stroke-width:1.5; stroke:#ef4444; fill:none; marker-end: url(#arrow-red);}</style><defs><marker id="arrow-red" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3" markerHeight="3" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444"/></marker></defs><path d="M20,140 L20,10 L180,10" class="line" /><text x="15" y="15" class="txt" text-anchor="end">T</text><text x="180" y="15" class="txt" text-anchor="end">s</text><path d="M40,120 C 80,120 80,40 120,40" class="line" /><text x="80" y="30" class="lbl">饱和蒸汽线</text><path d="M40,120 C 30,80 30,40 40,30" class="line" /><text x="35" y="25" class="lbl">饱和液体线</text><path d="M45,115 L45,80" class="cycle"/><text x="38" y="100" class="txt">1→2</text><text x="52" y="100" class="lbl">(泵)</text><path d="M45,80 C60,78 140,75 160,45" class="cycle"/><text x="90" y="65" class="lbl">(锅炉)</text><path d="M160,45 L170,105" class="cycle"/><text x="158" y="40" class="txt">2→3</text><text x="175" y="70" class="lbl">(汽轮机)</text><path d="M170,105 L45,115" class="cycle"/><text x="173" y="108" class="txt">3→4</text><text x="110" y="120" class="lbl">(冷凝器)</text></svg>`;
+        }
+
+        // Chapter 1: Dynamic Boiler Sandbox
+        function initBoilerSandbox() {
+            const sliders = {
+                load: document.getElementById('load-slider'),
+                air: document.getElementById('air-total-slider'),
+                tilt: document.getElementById('burner-tilt-slider'),
+                ofa: document.getElementById('o2-dist-slider')
+            };
+            if (!sliders.load) return; // Exit if sandbox elements are not found
+
+            const values = {
+                load: document.getElementById('load-value'),
+                air: document.getElementById('air-total-value'),
+                tilt: document.getElementById('burner-tilt-value'),
+                ofa: document.getElementById('o2-dist-value')
+            };
+            const visuals = {
+                flame: document.getElementById('flame-visual'),
+                nox: document.getElementById('nox-meter-fill'),
+                co: document.getElementById('co-meter-fill'),
+                efficiency: document.getElementById('efficiency-value')
+            };
+            
+            const paretoCtx = document.getElementById('pareto-chart')?.getContext('2d');
+            let paretoChart;
+            let workingPointHistory = []; // To store efficiency vs NOx points for the chart
+
+            function updateBoilerSimulation() {
+                // Get current slider values
+                const load = parseFloat(sliders.load.value);
+                const air = parseFloat(sliders.air.value);
+                const tilt = parseFloat(sliders.tilt.value);
+                const ofa = parseFloat(sliders.ofa.value);
+                
+                // Update displayed values
+                values.load.textContent = load.toFixed(0);
+                values.air.textContent = air.toFixed(0);
+                values.tilt.textContent = tilt.toFixed(0);
+                values.ofa.textContent = ofa.toFixed(0);
+
+                // Simplified non-linear boiler model (illustrative)
+                const load_factor = load / 100;
+                let nox_raw = (air * 1.2 - ofa * 1.5 + Math.abs(tilt) * 0.8) * (0.8 + load_factor * 0.4);
+                let co_raw = (150 - air + (Math.abs(air - 85) * 0.5)) * (0.9 + load_factor * 0.2);
+                let eff_base = 90.5 + load_factor * 2;
+                let eff_air = 1 - Math.abs(air - (80 + load_factor * 5)) / 50; // Optimal air changes with load
+                let eff_ofa = 1 - Math.abs(ofa - 35) / 40; // Optimal OFA around 35%
+                let efficiency_raw = eff_base + (eff_air * 1.5) + (eff_ofa * 1) - (co_raw / 150);
+
+                // Clamp outputs to realistic ranges
+                const nox = Math.max(10, Math.min(100, nox_raw));
+                const co = Math.max(5, Math.min(100, co_raw));
+                const efficiency = Math.max(88, Math.min(94.5, efficiency_raw));
+                
+                // --- Enhanced Flame Animation ---
+                const flameHeight = (30 + (air / 100) * 80) * (0.7 + load_factor * 0.4);
+                const flameSkew = tilt * -0.8;
+                visuals.flame.style.height = `${flameHeight}%`;
+                visuals.flame.style.transform = `translateY(${tilt * -2}px) skewX(${flameSkew}deg)`;
+                // --- End Enhancement ---
+                
+                // Update visual meters and values
+                visuals.nox.style.width = `${nox}%`;
+                visuals.co.style.width = `${co}%`;
+                visuals.efficiency.textContent = efficiency.toFixed(2);
+
+                updateParetoChart(efficiency, nox); // Update the Pareto chart with current point
+            }
+
+            // Generates a simulated Pareto front for Efficiency vs NOx
+            function generateParetoFront() {
+                const front = [];
+                for (let eff = 94.5; eff >= 90; eff -= 0.1) {
+                    let nox = 30 + Math.pow(94.5 - eff, 2) * 2; // Non-linear relationship
+                    nox += (Math.random() - 0.5) * 5; // Add some noise
+                    front.push({x: nox, y: eff});
+                }
+                return front.sort((a,b) => a.x - b.x); // Sort by NOx for line drawing
+            }
+
+            // Updates the Pareto chart
+            function updateParetoChart(efficiency, nox) {
+                if (!paretoCtx) return;
+                
+                const newPoint = {x: nox, y: efficiency};
+                workingPointHistory.push(newPoint);
+                if (workingPointHistory.length > 20) workingPointHistory.shift(); // Keep last 20 points
+
+                if (paretoChart) paretoChart.destroy(); // Destroy previous chart instance
+                
+                const isDark = document.documentElement.classList.contains('dark');
+                const gridColor = isDark ? 'rgba(148, 163, 184, 0.2)' : 'rgba(0, 0, 0, 0.1)';
+                const textColor = isDark ? '#94a3b8' : '#475569';
+
+                window.paretoChart = new Chart(paretoCtx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: '帕累托最优前沿', data: generateParetoFront(), borderColor: 'rgba(220, 38, 38, 0.5)', borderWidth: 2, borderDash: [5, 5], pointRadius: 0, showLine: true, fill: false,
+                        },{
+                            label: '历史轨迹', data: workingPointHistory, backgroundColor: 'rgba(100, 116, 139, 0.3)', pointRadius: 3,
+                        },{
+                            label: '当前工作点', data: [newPoint], backgroundColor: 'rgb(79, 70, 229)', pointRadius: 8, pointHoverRadius: 10,
+                        }]
+                    },
+                    options: {
+                        animation: false, // Disable animation for real-time updates
+                        scales: { 
+                            x: { title: { display: true, text: 'NOx 排放', color: textColor }, min: 20, max: 100, grid: { color: gridColor }, ticks: { color: textColor } }, 
+                            y: { title: { display: true, text: '热效率 (%)', color: textColor }, min: 88, max: 95, grid: { color: gridColor }, ticks: { color: textColor } } 
+                        },
+                        plugins: { legend: { position: 'bottom', labels: { color: textColor } } }
+                    }
+                });
+            }
+
+            // Add event listeners to all sliders
+            Object.values(sliders).forEach(slider => slider.addEventListener('input', updateBoilerSimulation));
+            updateBoilerSimulation(); // Initial simulation update
+        }
+
+        // Chapter 2: RL Taxonomy Diagram SVG
+        function renderRlTaxonomy() {
+            const container = document.getElementById('rl-taxonomy-container');
+            if (!container) return;
+            container.innerHTML = `<svg viewBox="0 0 250 150" xmlns="http://www.w3.org/2000/svg"><style>.box{fill:var(--bg-secondary); stroke:var(--accent-color); rx:3;} .txt{font-size:8px; font-family: 'Noto Sans SC', sans-serif; text-anchor:middle; fill: var(--text-primary);} .line{stroke:var(--text-secondary); stroke-width:0.5;}</style><rect x="85" y="5" width="80" height="15" class="box" /><text x="125" y="14" class="txt">强化学习</text><line x1="125" y1="20" x2="125" y2="30" class="line" /><line x1="60" y1="30" x2="190" y2="30" class="line" /><line x1="60" y1="30" x2="60" y2="40" class="line" /><line x1="190" y1="30" x2="190" y2="40" class="line" /><rect x="20" y="40" width="80" height="15" class="box" /><text x="60" y="49" class="txt">基于模型</text><rect x="150" y="40" width="80" height="15" class="box" /><text x="190" y="49" class="txt">无模型</text><line x1="190" y1="55" x2="190" y2="65" class="line" /><line x1="155" y1="65" x2="225" y2="65" class="line" /><line x1="155" y1="65" x2="155" y2="75" class="line" /><line x1="225" y1="65" x2="225" y2="75" class="line" /><rect x="115" y="75" width="80" height="15" class="box" /><text x="155" y="84" class="txt">基于策略</text><rect x="185" y="75" width="80" height="15" class="box" /><text x="225" y="84" class="txt">基于价值</text><line x1="155" y1="90" x2="155" y2="100" class="line" /><rect x="115" y="100" width="80" height="15" style="fill:#dcfce7; stroke:#4ade80;" /><text x="155" y="109" class="txt">PPO</text><line x1="225" y1="90" x2="225" y2="100" class="line" /><rect x="185" y="100" width="80" height="15" style="fill:#fef9c3; stroke:#facc15;" /><text x="225" y="109" class="txt">DQN</text><path d="M155,90 C175,95 205,95 225,90" fill="none" class="line"/><line x1="190" y1="92.5" x2="190" y2="120" class="line"/><text x="190" y="108" class="txt">演员-评论家</text><rect x="150" y="120" width="80" height="15" style="fill:#fbcfe8; stroke:#f472b6;" /><text x="190" y="129" class="txt">SAC / DDPG</text></svg>`;
+        }
+
+        // Chapter 2: Transformer Boiler Diagram SVG
+        function renderTransformerBoilerDiagram() {
+            const container = document.getElementById('transformer-boiler-diagram');
+            if (!container) return;
+            container.innerHTML = `<svg viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg">
+                <style>
+                    .node { fill: var(--bg-secondary); stroke: var(--accent-color); stroke-width: 1.5; rx: 8; ry: 8; }
+                    .text { font-size: 10px; font-family: 'Noto Sans SC', sans-serif; fill: var(--text-primary); text-anchor: middle; }
+                    .arrow { stroke: var(--text-secondary); stroke-width: 1; fill: none; marker-end: url(#arrowhead-small); }
+                    .label { font-size: 9px; fill: var(--text-secondary); text-anchor: middle; }
+                    .highlight-text { fill: var(--accent-color); font-weight: bold; }
+                </style>
+                <defs>
+                    <marker id="arrowhead-small" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3" markerHeight="3" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--text-secondary)" />
+                    </marker>
+                </defs>
+
+                <!-- Input Sequence -->
+                <rect x="10" y="70" width="80" height="60" class="node" />
+                <text x="50" y="90" class="text">历史序列</text>
+                <text x="50" y="110" class="label">(S, A, R)</text>
+
+                <!-- Arrow to Embedding -->
+                <path d="M90,100 L120,100" class="arrow" />
+                <text x="105" y="115" class="label">输入</text>
+
+                <!-- Embedding + Positional Encoding -->
+                <rect x="120" y="70" width="80" height="60" class="node" />
+                <text x="160" y="90" class="text">嵌入层</text>
+                <text x="160" y="110" class="label">+位置编码</text>
+
+                <!-- Arrow to Transformer Encoder -->
+                <path d="M200,100 L230,100" class="arrow" />
+                <text x="215" y="115" class="label">编码</text>
+
+                <!-- Transformer Encoder -->
+                <rect x="230" y="50" width="100" height="100" class="node" />
+                <text x="280" y="75" class="text highlight-text">Transformer</text>
+                <text x="280" y="95" class="text">编码器</text>
+                <text x="280" y="115" class="label">自注意力机制</text>
+
+                <!-- Arrow to Decision Heads -->
+                <path d="M330,100 L360,100" class="arrow" />
+                <text x="345" y="115" class="label">输出</text>
+
+                <!-- Decision Heads (Policy & Value) -->
+                <rect x="360" y="70" width="80" height="60" class="node" />
+                <text x="400" y="90" class="text">决策头</text>
+                <text x="400" y="110" class="label">(策略/价值)</text>
+
+                <!-- Output Action -->
+                <path d="M440,100 L470,100" class="arrow" />
+                <text x="485" y="100" class="text highlight-text">动作 A</text>
+            </svg>`;
+        }
+
+        // Chapter 3: Neural Network Diagram SVG
+        function renderNNDiagram() {
+            const container = document.getElementById('nn-diagram-container');
+            if (!container) return;
+            container.innerHTML = `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+                <style>
+                    .neuron { fill: var(--bg-secondary); stroke: var(--accent-color); stroke-width: 1.5; }
+                    .connection { stroke: var(--text-secondary); stroke-width: 0.5; }
+                    .label { font-size: 10px; font-family: 'Noto Sans SC', sans-serif; fill: var(--text-primary); text-anchor: middle; }
+                </style>
+
+                <!-- Input Layer -->
+                <circle cx="50" cy="50" r="15" class="neuron" />
+                <text x="50" y="50" class="label">I1</text>
+                <circle cx="50" cy="100" r="15" class="neuron" />
+                <text x="50" y="100" class="label">I2</text>
+                <circle cx="50" cy="150" r="15" class="neuron" />
+                <text x="50" y="150" class="label">I3</text>
+                <text x="50" y="180" class="label">输入层</text>
+
+                <!-- Hidden Layer -->
+                <circle cx="150" cy="75" r="15" class="neuron" />
+                <text x="150" y="75" class="label">H1</text>
+                <circle cx="150" cy="125" r="15" class="neuron" />
+                <text x="150" y="125" class="label">H2</text>
+                <text x="150" y="180" class="label">隐藏层</text>
+
+                <!-- Output Layer -->
+                <circle cx="250" cy="100" r="15" class="neuron" />
+                <text x="250" y="100" class="label">O1</text>
+                <text x="250" y="180" class="label">输出层</text>
+
+                <!-- Connections -->
+                <!-- Input to Hidden -->
+                <line x1="50" y1="50" x2="150" y2="75" class="connection" />
+                <line x1="50" y1="50" x2="150" y2="125" class="connection" />
+
+                <line x1="50" y1="100" x2="150" y2="75" class="connection" />
+                <line x1="50" y1="100" x2="150" y2="125" class="connection" />
+
+                <line x1="50" y1="150" x2="150" y2="75" class="connection" />
+                <line x1="50" y1="150" x2="150" y2="125" class="connection" />
+
+                <!-- Hidden to Output -->
+                <line x1="150" y1="75" x2="250" y2="100" class="connection" />
+                <line x1="150" y1="125" x2="250" y2="100" class="connection" />
+            </svg>`;
+        }
+
+        // Chapter 11: Decision Transformer Diagram SVG
+        function renderDecisionTransformerDiagram() {
+            const container = document.getElementById('decision-transformer-diagram');
+            if (!container) return;
+            container.innerHTML = `<svg viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg">
+                <style>
+                    .node { fill: var(--bg-secondary); stroke: var(--accent-color); stroke-width: 1.5; rx: 8; ry: 8; }
+                    .text { font-size: 10px; font-family: 'Noto Sans SC', sans-serif; fill: var(--text-primary); text-anchor: middle; }
+                    .arrow { stroke: var(--text-secondary); stroke-width: 1; fill: none; marker-end: url(#arrowhead-small); }
+                    .label { font-size: 9px; fill: var(--text-secondary); text-anchor: middle; }
+                    .highlight-text { fill: var(--accent-color); font-weight: bold; }
+                </style>
+                <defs>
+                    <marker id="arrowhead-small" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3" markerHeight="3" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--text-secondary)" />
+                    </marker>
+                </defs>
+
+                <!-- Input Sequence (Return, State, Action) -->
+                <rect x="10" y="50" width="80" height="100" class="node" />
+                <text x="50" y="70" class="text highlight-text">期望回报 $\hat{R}_t$</text>
+                <text x="50" y="90" class="text">状态 $s_t$</text>
+                <text x="50" y="110" class="text">动作 $a_t$</text>
+                <text x="50" y="130" class="label">(历史序列)</text>
+
+                <!-- Arrow to Transformer -->
+                <path d="M90,100 L120,100" class="arrow" />
+                <text x="105" y="115" class="label">输入</text>
+
+                <!-- Transformer Block -->
+                <rect x="120" y="50" width="180" height="100" class="node" />
+                <text x="210" y="75" class="text highlight-text">Transformer Decoder</text>
+                <text x="210" y="95" class="label">自注意力 + 交叉注意力</text>
+                <text x="210" y="115" class="label">(序列建模)</text>
+
+                <!-- Arrow to Output Action -->
+                <path d="M300,100 L330,100" class="arrow" />
+                <text x="315" y="115" class="label">输出</text>
+
+                <!-- Predicted Action -->
+                <rect x="330" y="70" width="80" height="60" class="node" />
+                <text x="370" y="100" class="text highlight-text">预测动作 $a_t$</text>
+
+                <!-- Autoregressive Loop -->
+                <path d="M370,130 Q370,170 210,170 Q50,170 50,150" class="arrow" stroke-dasharray="4,2" />
+                <text x="210" y="180" class="label">自回归生成</text>
+            </svg>`;
+        }
+
+        // Chapter 12: Offline RL Diagram SVG
+        function renderOfflineRLDiagram() {
+            const container = document.getElementById('offline-rl-diagram');
+            if (!container) return;
+            container.innerHTML = `<svg viewBox="0 0 400 250" class="w-full max-w-lg"><style>.text { font-size: 12px; font-family: 'Noto Sans SC', sans-serif; fill: var(--text-primary); } .small-text { font-size: 10px; fill: var(--text-secondary); }</style><defs><marker id="arrow-dark" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--text-secondary)"/></marker></defs><ellipse cx="200" cy="125" rx="120" ry="60" fill="rgba(79, 70, 229, 0.1)" stroke="rgba(79, 70, 229, 0.3)" stroke-dasharray="5,5"/><text x="200" y="125" text-anchor="middle" class="text">数据集 D (行为策略 $\pi_\beta$ 的轨迹)</text><circle cx="150" cy="110" r="5" fill="#22c55e"/><text x="150" y="100" text-anchor="middle" class="small-text">数据支持的好动作</text><circle cx="250" cy="140" r="5" fill="#ef4444"/><text x="250" y="160" text-anchor="middle" class="small-text">数据支持的坏动作</text><circle cx="350" cy="80" r="5" fill="#f97316"/><path d="M345,85 L300,110" stroke="#f97316" stroke-width="1.5" marker-end="url(#arrow-dark)"/><text x="355" y="75" text-anchor="start" class="small-text" fill="#f97316">分布外(OOD)动作</text><text x="355" y="90" text-anchor="start" class="small-text" fill="#f97316">Q值估计不准，可能被高估</text><ellipse cx="180" cy="115" rx="50" ry="25" fill="none" stroke="#16a34a" stroke-width="2"/><text x="180" y="150" text-anchor="middle" class="text" fill="#16a34a">保守策略 $\pi_\theta$</text><text x="180" y="165" text-anchor="middle" class="small-text" fill="#16a34a">(被约束在数据分布内)</text></svg>`;
+        }
+    </script>
+</body>
+</html>
